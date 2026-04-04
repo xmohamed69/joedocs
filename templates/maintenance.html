@@ -1,0 +1,65 @@
+{% extends "_special_base.html" %}
+{% block title %}Maintenance · JoeLinkAI{% endblock %}
+
+{% block extra_style %}
+<style>
+  .progress-bar-wrap {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    height: 4px;
+    overflow: hidden;
+    margin: 0 0 1.75rem;
+  }
+  .progress-bar {
+    height: 100%;
+    background: var(--ink);
+    border-radius: 20px;
+    width: 0%;
+    animation: progress 8s ease-in-out infinite alternate;
+  }
+  @keyframes progress {
+    0%   { width: 15%; }
+    100% { width: 85%; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-card">
+  <div class="brand">
+    <div class="brand-icon">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+    </div>
+    <div class="brand-name">JoeLink<span>AI</span></div>
+  </div>
+
+  <div class="page-icon">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+  </div>
+
+  <h1 class="page-title">Under maintenance</h1>
+  <p class="page-desc">
+    We're making improvements to JoeLinkAI. This won't take long — please check back shortly.
+    {% if maintenance_message %}<br><br>{{ maintenance_message }}{% endif %}
+  </p>
+
+  <div class="progress-bar-wrap">
+    <div class="progress-bar"></div>
+  </div>
+
+  <div class="btn-row">
+    <button onclick="location.reload()" class="btn btn-secondary">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+      Check again
+    </button>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_script %}
+<script>
+  // Auto-check every 60 seconds
+  setTimeout(function(){ location.reload(); }, 60000);
+</script>
+{% endblock %}

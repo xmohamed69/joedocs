@@ -1,0 +1,77 @@
+{% extends "app_base.html" %}
+{% load static %}
+{% block title %}{{ vault.name }} — JoeLinkAI{% endblock %}
+{% block page_title %}{{ vault.name }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="page-header-text">
+    <h1 class="page-title" style="display:flex;align-items:center;gap:10px;">
+      {{ vault.name }}
+      <span class="badge badge-success">
+        <span class="lang-text" data-lang="en">Unlocked</span>
+        <span class="lang-text" data-lang="fr" style="display:none">Déverrouillé</span>
+        <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">مفتوح</span>
+      </span>
+    </h1>
+    {% if vault.description %}<p class="page-subtitle">{{ vault.description }}</p>{% endif %}
+  </div>
+  <div style="display:flex;gap:.5rem;">
+    <a href="{% url 'docs:explorer' %}" class="btn btn-secondary">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+      <span class="lang-text" data-lang="en">Explorer</span><span class="lang-text" data-lang="fr" style="display:none">Explorateur</span><span class="lang-text" data-lang="ar" style="display:none" dir="rtl">المستكشف</span>
+    </a>
+    <a href="{% url 'docs:upload' %}" class="btn btn-primary">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      <span class="lang-text" data-lang="en">Upload Document</span><span class="lang-text" data-lang="fr" style="display:none">Télécharger</span><span class="lang-text" data-lang="ar" style="display:none" dir="rtl">رفع مستند</span>
+    </a>
+  </div>
+</div>
+
+{% if documents %}
+<table class="data-table">
+  <thead>
+    <tr>
+      <th><span class="lang-text" data-lang="en">Title</span><span class="lang-text" data-lang="fr" style="display:none">Titre</span><span class="lang-text" data-lang="ar" style="display:none" dir="rtl">العنوان</span></th>
+      <th><span class="lang-text" data-lang="en">Owner</span><span class="lang-text" data-lang="fr" style="display:none">Propriétaire</span><span class="lang-text" data-lang="ar" style="display:none" dir="rtl">المالك</span></th>
+      <th><span class="lang-text" data-lang="en">Created</span><span class="lang-text" data-lang="fr" style="display:none">Créé</span><span class="lang-text" data-lang="ar" style="display:none" dir="rtl">تاريخ الإنشاء</span></th>
+      <th><span class="lang-text" data-lang="en">Modified</span><span class="lang-text" data-lang="fr" style="display:none">Modifié</span><span class="lang-text" data-lang="ar" style="display:none" dir="rtl">تاريخ التعديل</span></th>
+      <th style="text-align:right;"></th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for doc in documents %}
+    <tr>
+      <td>
+        <a href="{% url 'docs:document_detail' doc.id %}" style="font-weight:600;color:var(--ink);text-decoration:none;">
+          <div style="display:flex;align-items:center;gap:7px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--ink-2)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            {{ doc.title }}
+          </div>
+        </a>
+      </td>
+      <td style="color:var(--muted);font-size:.82rem;">{% if doc.owner %}{{ doc.owner.first_name }} {{ doc.owner.last_name }}{% else %}<em>—</em>{% endif %}</td>
+      <td style="color:var(--muted);font-size:.82rem;">{{ doc.created_at|date:"M d, Y H:i" }}</td>
+      <td style="color:var(--muted);font-size:.82rem;">{{ doc.updated_at|date:"M d, Y H:i" }}</td>
+      <td>
+        <div class="actions-cell">
+          <a href="{% url 'docs:document_detail' doc.id %}" class="btn btn-secondary btn-sm">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            <span class="lang-text" data-lang="en">View</span><span class="lang-text" data-lang="fr" style="display:none">Voir</span><span class="lang-text" data-lang="ar" style="display:none" dir="rtl">عرض</span>
+          </a>
+        </div>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<div class="empty-state">
+  <div class="empty-state-icon">
+    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+  </div>
+  <h3><span class="lang-text" data-lang="en">No documents in this vault yet</span><span class="lang-text" data-lang="fr" style="display:none">Aucun document dans ce coffre</span><span class="lang-text" data-lang="ar" style="display:none" dir="rtl">لا توجد مستندات في هذه الخزنة بعد</span></h3>
+  <p><a href="{% url 'docs:upload' %}"><span class="lang-text" data-lang="en">Upload a document</span><span class="lang-text" data-lang="fr" style="display:none">Télécharger un document</span><span class="lang-text" data-lang="ar" style="display:none" dir="rtl">رفع مستند</span></a></p>
+</div>
+{% endif %}
+{% endblock %}

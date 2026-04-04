@@ -1,0 +1,150 @@
+{% extends "website/base.html" %}
+{% block title %}JoeLinkAI — Download{% endblock %}
+
+{% block extra_head %}
+<style>
+  .download-page {
+    padding: 5rem 1.5rem;
+    text-align: center;
+  }
+  .download-page h1 {
+    font-size: 2.5rem; font-weight: 800;
+    letter-spacing: -.04em; margin-bottom: .6rem;
+  }
+  .download-page .subtitle {
+    color: var(--muted); margin-bottom: 3.5rem; font-size: 1.05rem;
+    max-width: 560px; margin-left: auto; margin-right: auto;
+  }
+
+  .download-card {
+    max-width: 480px; margin: 0 auto 4rem;
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 2.5rem 2rem;
+  }
+  .download-os-icon {
+    width: 56px; height: 56px;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 1.25rem;
+    color: var(--ink);
+  }
+  .download-card h2 {
+    font-size: 1.35rem; font-weight: 800;
+    margin-bottom: .5rem; letter-spacing: -.03em;
+  }
+  .download-card p { color: var(--muted); font-size: .9rem; margin-bottom: 1.75rem; }
+  .btn-dl {
+    display: inline-flex; align-items: center; gap: .7rem;
+    background: var(--ink); color: var(--surface);
+    font-family: 'Syne', sans-serif; font-weight: 700;
+    font-size: 1rem; padding: .85rem 2.25rem;
+    border-radius: var(--radius); text-decoration: none;
+    transition: opacity var(--t);
+  }
+  .btn-dl:hover { opacity: .8; }
+  .dl-meta {
+    margin-top: 1rem;
+    font-size: .78rem; color: var(--muted-lt);
+  }
+
+  .install-section {
+    max-width: 680px; margin: 0 auto;
+    text-align: left;
+  }
+  .install-section h2 {
+    font-size: 1.4rem; font-weight: 800;
+    margin-bottom: 1.5rem; letter-spacing: -.03em;
+    text-align: center;
+  }
+  .install-steps { display: flex; flex-direction: column; gap: 1px; }
+  .install-step {
+    display: flex; gap: 1.25rem; align-items: flex-start;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.25rem 1.5rem;
+    transition: border-color var(--t);
+  }
+  .install-step:hover { border-color: var(--border-2); }
+  .install-step-num {
+    flex-shrink: 0;
+    width: 28px; height: 28px;
+    border: 1.5px solid var(--border-2);
+    border-radius: 50%;
+    font-family: 'Syne', sans-serif; font-weight: 800;
+    font-size: .8rem; color: var(--ink);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .install-step h4 {
+    font-size: .94rem; font-weight: 700;
+    margin-bottom: .3rem; color: var(--ink);
+  }
+  .install-step p { font-size: .855rem; color: var(--muted); margin: 0; line-height: 1.55; }
+  .install-step code {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: .1em .4em;
+    font-size: .82rem;
+    font-family: 'Courier New', monospace;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="download-page container">
+  <h1>Download JoeLinkAI</h1>
+  <p class="subtitle">The JoeLinkAI desktop client for Windows brings your knowledge base and AI chatbot right to your desk.</p>
+
+  <div class="download-card">
+    <div class="download-os-icon">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+    </div>
+    <h2>JoeLinkAI for Windows</h2>
+    <p>Compatible with Windows 10 and Windows 11. ~45 MB installer.</p>
+    <a class="btn-dl" href="/static/downloads/JoeLinkAISetup.exe" download>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Download JoeLinkAISetup.exe
+    </a>
+    <div class="dl-meta">Windows 10 / 11 &nbsp;·&nbsp; ~45 MB &nbsp;·&nbsp; x64</div>
+  </div>
+
+  <div class="install-section">
+    <h2>Installation guide</h2>
+    <div class="install-steps">
+      <div class="install-step">
+        <div class="install-step-num">1</div>
+        <div>
+          <h4>Download the installer</h4>
+          <p>Click the download button above to save <code>JoeLinkAISetup.exe</code> to your computer.</p>
+        </div>
+      </div>
+      <div class="install-step">
+        <div class="install-step-num">2</div>
+        <div>
+          <h4>Run the installer</h4>
+          <p>Double-click <code>JoeLinkAISetup.exe</code>. If prompted by Windows Defender, click "More info" → "Run anyway".</p>
+        </div>
+      </div>
+      <div class="install-step">
+        <div class="install-step-num">3</div>
+        <div>
+          <h4>Follow the setup wizard</h4>
+          <p>Accept the license agreement and choose an install directory. The setup takes about 30 seconds.</p>
+        </div>
+      </div>
+      <div class="install-step">
+        <div class="install-step-num">4</div>
+        <div>
+          <h4>Sign in with your credentials</h4>
+          <p>Launch JoeLinkAI from your desktop and enter the organization URL and credentials you received by email.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

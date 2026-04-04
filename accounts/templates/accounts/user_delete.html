@@ -1,0 +1,117 @@
+{% extends "app_base.html" %}
+{% load static %}
+{% block title %}Delete User — JoeLinkAI{% endblock %}
+{% block page_title %}Delete User{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="page-header-text">
+    <h1 class="page-title">
+      <span class="lang-text" data-lang="en">Delete User</span>
+      <span class="lang-text" data-lang="fr" style="display:none">Supprimer l'utilisateur</span>
+      <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">حذف المستخدم</span>
+    </h1>
+  </div>
+</div>
+
+<div style="max-width:580px;">
+  <div class="warning-banner">
+    <div class="warning-banner-title">
+      <span class="lang-text" data-lang="en">Warning — this action cannot be undone</span>
+      <span class="lang-text" data-lang="fr" style="display:none">Avertissement — action irréversible</span>
+      <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">تحذير — لا يمكن التراجع عن هذا الإجراء</span>
+    </div>
+    <p class="lang-text" data-lang="en">Deleting this account will permanently remove all user data, access credentials, associated documents, and activity logs.</p>
+    <p class="lang-text" data-lang="fr" style="display:none">La suppression supprimera définitivement toutes les données, identifiants, documents associés et journaux.</p>
+    <p class="lang-text" data-lang="ar" style="display:none" dir="rtl">سيؤدي الحذف إلى إزالة جميع البيانات وبيانات الاعتماد والمستندات المرتبطة وسجلات النشاط.</p>
+  </div>
+
+  <div class="card" style="margin-bottom:1.5rem;">
+    <div style="display:flex; align-items:center; gap:1rem; margin-bottom:1.5rem; padding-bottom:1.5rem; border-bottom:1px solid var(--border);">
+      <div class="avatar-lg">
+        {% if user_obj.avatar %}
+          <img src="{{ user_obj.avatar.url }}" alt="">
+        {% else %}
+          {{ user_obj.first_name|first|upper }}{{ user_obj.last_name|first|upper }}
+        {% endif %}
+      </div>
+      <div>
+        <div style="font-family:var(--font-head); font-weight:700; font-size:1.05rem; color:var(--ink);">{{ user_obj.first_name }} {{ user_obj.last_name }}</div>
+        <div style="font-size:.82rem; color:var(--muted); margin-top:.25rem;">{{ user_obj.email }}</div>
+      </div>
+    </div>
+
+    <div class="form-grid form-grid-2">
+      <div>
+        <div style="font-size:.62rem; font-weight:700; font-family:var(--font-head); text-transform:uppercase; letter-spacing:.1em; color:var(--muted); margin-bottom:.3rem;">
+          <span class="lang-text" data-lang="en">User ID</span>
+          <span class="lang-text" data-lang="fr" style="display:none">ID Utilisateur</span>
+          <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">المعرف</span>
+        </div>
+        <div class="monospace">{{ user_obj.username }}</div>
+      </div>
+      <div>
+        <div style="font-size:.62rem; font-weight:700; font-family:var(--font-head); text-transform:uppercase; letter-spacing:.1em; color:var(--muted); margin-bottom:.3rem;">
+          <span class="lang-text" data-lang="en">Role</span>
+          <span class="lang-text" data-lang="fr" style="display:none">Rôle</span>
+          <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">الدور</span>
+        </div>
+        <span class="role-pill role-{{ user_obj.role }}">{{ user_obj.get_role_display }}</span>
+      </div>
+      <div>
+        <div style="font-size:.62rem; font-weight:700; font-family:var(--font-head); text-transform:uppercase; letter-spacing:.1em; color:var(--muted); margin-bottom:.3rem;">
+          <span class="lang-text" data-lang="en">Status</span>
+          <span class="lang-text" data-lang="fr" style="display:none">Statut</span>
+          <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">الحالة</span>
+        </div>
+        {% if user_obj.is_suspended %}
+          <span class="badge badge-suspended">
+            <span class="lang-text" data-lang="en">Suspended</span>
+            <span class="lang-text" data-lang="fr" style="display:none">Suspendu</span>
+            <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">موقوف</span>
+          </span>
+        {% elif user_obj.is_active %}
+          <span class="badge badge-active">
+            <span class="lang-text" data-lang="en">Active</span>
+            <span class="lang-text" data-lang="fr" style="display:none">Actif</span>
+            <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">نشط</span>
+          </span>
+        {% else %}
+          <span class="badge badge-inactive">
+            <span class="lang-text" data-lang="en">Inactive</span>
+            <span class="lang-text" data-lang="fr" style="display:none">Inactif</span>
+            <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">غير نشط</span>
+          </span>
+        {% endif %}
+      </div>
+      <div>
+        <div style="font-size:.62rem; font-weight:700; font-family:var(--font-head); text-transform:uppercase; letter-spacing:.1em; color:var(--muted); margin-bottom:.3rem;">
+          <span class="lang-text" data-lang="en">Last Login</span>
+          <span class="lang-text" data-lang="fr" style="display:none">Dernière connexion</span>
+          <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">آخر دخول</span>
+        </div>
+        <div style="font-size:.875rem; color:var(--ink-2);">
+          {% if user_obj.last_login %}{{ user_obj.last_login|date:"M d, Y H:i" }}{% else %}<span style="color:var(--muted-light);">—</span>{% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <form method="post">
+    {% csrf_token %}
+    <div style="display:flex; gap:.625rem;">
+      <button type="submit" class="btn btn-danger">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+        <span class="lang-text" data-lang="en">Confirm Deletion</span>
+        <span class="lang-text" data-lang="fr" style="display:none">Confirmer la suppression</span>
+        <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">تأكيد الحذف</span>
+      </button>
+      <a href="{% url 'accounts:user_list' %}" class="btn btn-secondary">
+        <span class="lang-text" data-lang="en">Cancel</span>
+        <span class="lang-text" data-lang="fr" style="display:none">Annuler</span>
+        <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">إلغاء</span>
+      </a>
+    </div>
+  </form>
+</div>
+{% endblock %}

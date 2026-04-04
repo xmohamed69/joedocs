@@ -1,0 +1,145 @@
+{% extends "website/base.html" %}
+{% block title %}JoeLinkAI — Request an Organization{% endblock %}
+
+{% block extra_head %}
+<style>
+  .form-page { padding: 4rem 1.5rem 5rem; }
+  .form-page h1 {
+    font-size: 2rem; font-weight: 800;
+    letter-spacing: -.04em; margin-bottom: .4rem;
+  }
+  .form-page .subtitle { color: var(--muted); margin-bottom: 2.5rem; }
+  .plan-badge {
+    display: inline-flex; align-items: center; gap: .5rem;
+    background: var(--surface-2);
+    border: 1.5px solid var(--border-2);
+    color: var(--ink-2);
+    font-family: 'Syne', sans-serif; font-weight: 700;
+    font-size: .82rem;
+    padding: .38rem .9rem; border-radius: 20px;
+    margin-bottom: 2rem;
+  }
+  .plan-badge svg { color: var(--muted); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="form-page container-sm">
+  <h1>Request a new organization</h1>
+  <p class="subtitle">Fill in the details below. We'll verify your payment and send your credentials within 24 hours.</p>
+
+  <p style="font-size:.83rem;color:var(--muted);margin-bottom:1.5rem;">
+    Payment confirmations and organization requests are sent to
+    <a href="mailto:{{ contact_email }}">{{ contact_email }}</a>.
+  </p>
+
+  {% if selected_plan %}
+  <div class="plan-badge">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+    Selected plan: {{ selected_plan.name }}
+  </div>
+  {% endif %}
+
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    {% if form.non_field_errors %}
+      <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+    {% endif %}
+
+    <fieldset>
+      <legend>Organization info</legend>
+
+      <div class="form-group">
+        {{ form.org_name.label_tag }}
+        {{ form.org_name }}
+        {{ form.org_name.errors }}
+      </div>
+
+      <div class="form-group">
+        {{ form.org_type.label_tag }}
+        {{ form.org_type }}
+        {{ form.org_type.errors }}
+      </div>
+
+      <div class="form-group">
+        {{ form.estimated_users.label_tag }}
+        {{ form.estimated_users }}
+        {{ form.estimated_users.errors }}
+      </div>
+
+      {% if form.plan %}
+      <div class="form-group">
+        {{ form.plan.label_tag }}
+        {{ form.plan }}
+        {{ form.plan.errors }}
+      </div>
+      {% endif %}
+    </fieldset>
+
+    <fieldset>
+      <legend>Applicant info</legend>
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+        <div class="form-group">
+          {{ form.applicant_first_name.label_tag }}
+          {{ form.applicant_first_name }}
+          {{ form.applicant_first_name.errors }}
+        </div>
+        <div class="form-group">
+          {{ form.applicant_last_name.label_tag }}
+          {{ form.applicant_last_name }}
+          {{ form.applicant_last_name.errors }}
+        </div>
+      </div>
+
+      <div class="form-group">
+        {{ form.applicant_email.label_tag }}
+        {{ form.applicant_email }}
+        {{ form.applicant_email.errors }}
+      </div>
+
+      <div class="form-group">
+        {{ form.applicant_date_of_birth.label_tag }}
+        {{ form.applicant_date_of_birth }}
+        {{ form.applicant_date_of_birth.errors }}
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>BaridiMob payment</legend>
+      <p style="font-size:.85rem; color:var(--muted); margin-bottom:1.25rem;">
+        Payment method: <strong>Baridi Mob</strong>. Please complete your transfer and enter the details below.
+      </p>
+
+      <div class="form-group">
+        {{ form.baridimob_transaction_ref.label_tag }}
+        {{ form.baridimob_transaction_ref }}
+        {{ form.baridimob_transaction_ref.errors }}
+      </div>
+
+      <div class="form-group">
+        {{ form.baridimob_transaction_date.label_tag }}
+        {{ form.baridimob_transaction_date }}
+        {{ form.baridimob_transaction_date.errors }}
+      </div>
+
+      <div class="form-group">
+        {{ form.receipt.label_tag }}
+        {{ form.receipt }}
+        <small style="display:block;margin-top:.3rem;color:var(--muted); font-size:.8rem;">Optional — attach a screenshot of your payment confirmation.</small>
+        {{ form.receipt.errors }}
+      </div>
+    </fieldset>
+
+    <div class="form-group form-check">
+      {{ form.accept_terms }}
+      {{ form.accept_terms.label_tag }}
+    </div>
+    {{ form.accept_terms.errors }}
+
+    <br>
+    <button type="submit" class="btn btn-primary btn-lg">Submit request</button>
+  </form>
+</div>
+{% endblock %}

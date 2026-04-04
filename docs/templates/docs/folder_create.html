@@ -1,0 +1,64 @@
+{% extends "app_base.html" %}
+{% load static %}
+{% block title %}Create Folder — JoeLinkAI{% endblock %}
+{% block page_title %}Create Folder{% endblock %}
+
+{% block content %}
+<div style="max-width:500px;">
+  {% if error %}
+  <div class="alert alert-error" style="margin-bottom:1.2rem;">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    {{ error }}
+  </div>
+  {% endif %}
+
+  <div class="card" style="padding:0;overflow:hidden;">
+    <div class="card-header">
+      <h3>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+        <span class="lang-text" data-lang="en">New Folder</span>
+        <span class="lang-text" data-lang="fr" style="display:none">Nouveau dossier</span>
+        <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">مجلد جديد</span>
+      </h3>
+    </div>
+    <div class="card-body">
+      <form method="post">
+        {% csrf_token %}
+        <div class="form-group">
+          <label><span class="lang-text" data-lang="en">Folder Name</span><span class="lang-text" data-lang="fr" style="display:none">Nom du dossier</span><span class="lang-text" data-lang="ar" style="display:none" dir="rtl">اسم المجلد</span></label>
+          <input type="text" name="name" placeholder="e.g., Contracts, Reports, HR Files" required autofocus>
+        </div>
+        <div class="form-group">
+          <label><span class="lang-text" data-lang="en">Folder Group</span><span class="lang-text" data-lang="fr" style="display:none">Groupe de dossiers</span><span class="lang-text" data-lang="ar" style="display:none" dir="rtl">مجموعة المجلدات</span>&nbsp;<span style="color:var(--danger);">*</span></label>
+          <select name="group_id" required>
+            <option value=""><span class="lang-text" data-lang="en">Select a group…</span></option>
+            {% for group in groups %}<option value="{{ group.id }}">{{ group.name }}</option>{% endfor %}
+          </select>
+          {% if not groups %}
+          <div class="form-help" style="color:var(--warning);">
+            <span class="lang-text" data-lang="en">No groups yet. <a href="{% url 'docs:group_create' %}">Create a group first</a>.</span>
+            <span class="lang-text" data-lang="fr" style="display:none">Aucun groupe. <a href="{% url 'docs:group_create' %}">Créez d'abord un groupe</a>.</span>
+            <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">لا توجد مجموعات. <a href="{% url 'docs:group_create' %}">أنشئ مجموعة أولاً</a>.</span>
+          </div>
+          {% endif %}
+        </div>
+        <div class="form-group">
+          <label><span class="lang-text" data-lang="en">Parent Folder (Optional)</span><span class="lang-text" data-lang="fr" style="display:none">Dossier parent (Optionnel)</span><span class="lang-text" data-lang="ar" style="display:none" dir="rtl">المجلد الأصل (اختياري)</span></label>
+          <select name="parent_id">
+            <option value=""><span class="lang-text" data-lang="en">Root (No parent)</span></option>
+            {% for parent in parents %}<option value="{{ parent.id }}">{{ parent.name }}</option>{% endfor %}
+          </select>
+          <div class="form-help"><span class="lang-text" data-lang="en">Create nested folders by selecting a parent</span><span class="lang-text" data-lang="fr" style="display:none">Créez des dossiers imbriqués en sélectionnant un parent</span><span class="lang-text" data-lang="ar" style="display:none" dir="rtl">أنشئ مجلدات متداخلة باختيار مجلد أصل</span></div>
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            <span class="lang-text" data-lang="en">Create Folder</span><span class="lang-text" data-lang="fr" style="display:none">Créer le dossier</span><span class="lang-text" data-lang="ar" style="display:none" dir="rtl">إنشاء المجلد</span>
+          </button>
+          <a href="{% url 'docs:manage' %}" class="btn btn-secondary"><span class="lang-text" data-lang="en">Cancel</span><span class="lang-text" data-lang="fr" style="display:none">Annuler</span><span class="lang-text" data-lang="ar" style="display:none" dir="rtl">إلغاء</span></a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

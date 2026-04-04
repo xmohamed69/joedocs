@@ -1,0 +1,222 @@
+{% extends "app_base.html" %}
+{% load static %}
+{% block title %}Document Explorer — JoeLinkAI{% endblock %}
+{% block page_title %}Explorer{% endblock %}
+
+{% block extra_head %}
+<style>
+  .explorer-layout { display:grid; grid-template-columns:220px 1fr; gap:20px; align-items:start; }
+  @media (max-width:800px) { .explorer-layout { grid-template-columns:1fr; } }
+
+  .exp-sidebar { display:flex; flex-direction:column; gap:8px; }
+  .exp-sidebar-section { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); overflow:hidden; }
+  .exp-sidebar-header { padding:9px 14px; font-size:.67rem; font-weight:700; text-transform:uppercase; letter-spacing:.1em; color:var(--muted); font-family:var(--font-head); background:var(--surface-2); border-bottom:1px solid var(--border); }
+
+  .exp-nav-item { display:flex; align-items:center; gap:8px; padding:8px 14px; font-size:.82rem; color:var(--ink-2); text-decoration:none; transition:background var(--t),color var(--t); border-left:2px solid transparent; }
+  .exp-nav-item:hover { background:var(--surface-2); color:var(--ink); text-decoration:none; }
+  .exp-nav-item.active { background:var(--surface-2); color:var(--ink); font-weight:600; border-left-color:var(--ink); }
+  .exp-nav-item.vault-item { color:#d97706; }
+  .exp-nav-item.vault-item:hover { background:rgba(217,119,6,.06); }
+  .exp-nav-item.vault-item.active { border-left-color:#d97706; background:rgba(217,119,6,.06); }
+  .exp-nav-item svg { flex-shrink:0; }
+
+  .exp-main { min-width:0; }
+  .exp-toolbar { display:flex; align-items:center; gap:10px; margin-bottom:18px; flex-wrap:wrap; }
+
+  .exp-search { flex:1; min-width:220px; display:flex; align-items:center; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-md); overflow:hidden; transition:border-color var(--t); }
+  .exp-search:focus-within { border-color:var(--ink-2); }
+  .exp-search-icon { padding:0 10px; color:var(--muted); flex-shrink:0; }
+  .exp-search input { flex:1; border:none; outline:none; background:transparent; padding:.6rem 0; font-size:.84rem; color:var(--ink); font-family:var(--font-body); }
+  .exp-search input::placeholder { color:var(--muted); }
+
+  .exp-breadcrumb { display:flex; align-items:center; gap:5px; font-size:.78rem; color:var(--muted); margin-bottom:18px; flex-wrap:wrap; }
+  .exp-breadcrumb a { color:var(--muted); text-decoration:none; transition:color var(--t); }
+  .exp-breadcrumb a:hover { color:var(--ink); }
+  .exp-breadcrumb-sep { color:var(--muted); }
+  .exp-breadcrumb-current { color:var(--ink-2); font-weight:600; }
+
+  .exp-section-title { font-family:var(--font-head); font-size:.7rem; font-weight:700; text-transform:uppercase; letter-spacing:.1em; color:var(--muted); margin-bottom:10px; margin-top:20px; display:flex; align-items:center; gap:7px; }
+  .exp-section-title:first-child { margin-top:0; }
+
+  .exp-card-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(164px,1fr)); gap:10px; margin-bottom:4px; }
+  .exp-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); padding:14px; cursor:pointer; text-decoration:none; color:var(--ink-2); transition:border-color var(--t),box-shadow var(--t),transform var(--t); display:block; }
+  .exp-card:hover { border-color:var(--ink-2); box-shadow:var(--shadow-sm); transform:translateY(-2px); text-decoration:none; color:var(--ink); }
+  .exp-card-icon { margin-bottom:10px; }
+  .exp-card-name { font-size:.84rem; font-weight:700; font-family:var(--font-head); color:var(--ink); margin-bottom:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .exp-card-meta { font-size:.72rem; color:var(--muted); }
+  .exp-card.vault-card { border-color:rgba(217,119,6,.2); }
+  .exp-card.vault-card:hover { border-color:#d97706; }
+
+  .exp-tag-pill { display:inline-block; background:var(--surface-2); color:var(--ink-2); border:1px solid var(--border); padding:.12rem .45rem; border-radius:20px; font-size:.64rem; font-weight:600; font-family:var(--font-head); margin-right:3px; margin-top:3px; }
+
+  .exp-empty { text-align:center; padding:56px 24px; color:var(--muted); background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-xl); }
+  .exp-empty svg { color:var(--muted); margin-bottom:14px; }
+  .exp-empty h3 { font-family:var(--font-head); font-weight:800; font-size:1rem; color:var(--ink-2); margin-bottom:6px; }
+  .exp-empty p { font-size:.84rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="page-header-text">
+    <h1 class="page-title">
+      <span lang="en">Document Explorer</span>
+      <span lang="fr" style="display:none">Explorateur de documents</span>
+      <span lang="ar" style="display:none" dir="rtl">مستكشف المستندات</span>
+    </h1>
+  </div>
+  <div style="display:flex;gap:.6rem;">
+    {% if can_manage %}
+    <a href="{% url 'docs:manage' %}" class="btn btn-secondary">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      <span lang="en">Manage</span><span lang="fr" style="display:none">Gérer</span><span lang="ar" style="display:none" dir="rtl">إدارة</span>
+    </a>
+    {% endif %}
+    {% if can_upload %}
+    <a href="{% url 'docs:upload' %}" class="btn btn-primary">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      <span lang="en">Upload</span><span lang="fr" style="display:none">Télécharger</span><span lang="ar" style="display:none" dir="rtl">رفع</span>
+    </a>
+    {% endif %}
+  </div>
+</div>
+
+<div class="explorer-layout">
+  <div class="exp-sidebar">
+    <div class="exp-sidebar-section">
+      <div class="exp-sidebar-header"><span lang="en">Navigation</span><span lang="fr" style="display:none">Navigation</span><span lang="ar" style="display:none" dir="rtl">التنقل</span></div>
+      <a href="{% url 'docs:home' %}" class="exp-nav-item">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <span lang="en">Home</span><span lang="fr" style="display:none">Accueil</span><span lang="ar" style="display:none" dir="rtl">الرئيسية</span>
+      </a>
+    </div>
+    {% if vaults %}
+    <div class="exp-sidebar-section">
+      <div class="exp-sidebar-header"><span lang="en">Secure Vaults</span><span lang="fr" style="display:none">Coffres</span><span lang="ar" style="display:none" dir="rtl">الخزائن</span></div>
+      {% for vault in vaults %}<a href="{% url 'docs:vault_access' vault.id %}" class="exp-nav-item vault-item {% if current_vault and current_vault.id == vault.id %}active{% endif %}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>{{ vault.name }}</a>{% endfor %}
+    </div>
+    {% endif %}
+    {% if folders %}
+    <div class="exp-sidebar-section">
+      <div class="exp-sidebar-header"><span lang="en">Folders</span><span lang="fr" style="display:none">Dossiers</span><span lang="ar" style="display:none" dir="rtl">المجلدات</span></div>
+      {% for folder in folders %}<a href="{% url 'docs:folder_view' folder.id %}" class="exp-nav-item {% if current_folder and current_folder.id == folder.id %}active{% endif %}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>{{ folder.name }}</a>{% endfor %}
+    </div>
+    {% endif %}
+  </div>
+
+  <div class="exp-main">
+    <div class="exp-toolbar">
+      <form method="get" action="{% url 'docs:home' %}" style="display:contents;">
+        <div class="exp-search">
+          <div class="exp-search-icon"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>
+          <input type="text" name="q" value="{{ search_query|default:'' }}" placeholder="Search documents…">
+        </div>
+        <button type="submit" class="btn btn-secondary btn-sm"><span lang="en">Search</span><span lang="fr" style="display:none">Chercher</span><span lang="ar" style="display:none" dir="rtl">بحث</span></button>
+      </form>
+    </div>
+
+    <div class="exp-breadcrumb">
+      <a href="{% url 'docs:home' %}"><span lang="en">Home</span><span lang="fr" style="display:none">Accueil</span><span lang="ar" style="display:none" dir="rtl">الرئيسية</span></a>
+      {% if current_folder %}
+        {% if current_folder.parent %}
+          <span class="exp-breadcrumb-sep">›</span>
+          <a href="{% url 'docs:folder_view' current_folder.parent.id %}">{{ current_folder.parent.name }}</a>
+        {% endif %}
+        <span class="exp-breadcrumb-sep">›</span>
+        <span class="exp-breadcrumb-current">{{ current_folder.name }}</span>
+      {% else %}
+        <span class="exp-breadcrumb-sep">›</span>
+        <span class="exp-breadcrumb-current"><span lang="en">All Documents</span><span lang="fr" style="display:none">Tous les documents</span><span lang="ar" style="display:none" dir="rtl">جميع المستندات</span></span>
+      {% endif %}
+    </div>
+
+    {% if vaults and not current_folder %}
+    <div class="exp-section-title">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      <span lang="en">Secure Vaults</span><span lang="fr" style="display:none">Coffres sécurisés</span><span lang="ar" style="display:none" dir="rtl">الخزائن</span>
+    </div>
+    <div class="exp-card-grid">
+      {% for vault in vaults %}
+      <a href="{% url 'docs:vault_access' vault.id %}" class="exp-card vault-card">
+        <div class="exp-card-icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
+        <div class="exp-card-name">{{ vault.name }}</div>
+        <div class="exp-card-meta"><span lang="en">PIN Required</span><span lang="fr" style="display:none">PIN requis</span><span lang="ar" style="display:none" dir="rtl">يتطلب PIN</span></div>
+      </a>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if folders %}
+    <div class="exp-section-title">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+      <span lang="en">Folders</span><span lang="fr" style="display:none">Dossiers</span><span lang="ar" style="display:none" dir="rtl">المجلدات</span>
+    </div>
+    <div class="exp-card-grid">
+      {% for folder in folders %}
+      <a href="{% url 'docs:folder_view' folder.id %}" class="exp-card">
+        <div class="exp-card-icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--ink-2)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></div>
+        <div class="exp-card-name">{{ folder.name }}</div>
+        <div class="exp-card-meta">{{ folder.group.name }}</div>
+      </a>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if documents %}
+    <div class="exp-section-title">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      <span lang="en">Documents ({{ documents|length }})</span><span lang="fr" style="display:none">Documents ({{ documents|length }})</span><span lang="ar" style="display:none" dir="rtl">المستندات ({{ documents|length }})</span>
+    </div>
+    <table class="data-table">
+      <thead><tr>
+        <th><span lang="en">Title</span><span lang="fr" style="display:none">Titre</span><span lang="ar" style="display:none" dir="rtl">العنوان</span></th>
+        <th><span lang="en">Owner</span><span lang="fr" style="display:none">Propriétaire</span><span lang="ar" style="display:none" dir="rtl">المالك</span></th>
+        <th><span lang="en">Created</span><span lang="fr" style="display:none">Créé</span><span lang="ar" style="display:none" dir="rtl">تاريخ الإنشاء</span></th>
+        <th><span lang="en">Modified</span><span lang="fr" style="display:none">Modifié</span><span lang="ar" style="display:none" dir="rtl">تاريخ التعديل</span></th>
+        <th></th>
+      </tr></thead>
+      <tbody>
+        {% for doc in documents %}
+        <tr>
+          <td>
+            <a href="{% url 'docs:document_detail' doc.id %}" style="text-decoration:none;color:var(--ink);">
+              <div style="display:flex;align-items:flex-start;gap:8px;">
+                {% if doc.vault %}
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:2px;"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                {% else %}
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--ink-2)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:2px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                {% endif %}
+                <div>
+                  <div style="font-weight:600;">{{ doc.title }}</div>
+                  {% if doc.access_tags %}<div>{% for tag in doc.get_tags_list %}<span class="exp-tag-pill">{{ tag }}</span>{% endfor %}</div>{% endif %}
+                </div>
+              </div>
+            </a>
+          </td>
+          <td style="color:var(--muted);font-size:.82rem;">{% if doc.owner %}{{ doc.owner.first_name }} {{ doc.owner.last_name }}{% else %}<em>—</em>{% endif %}</td>
+          <td style="color:var(--muted);font-size:.82rem;">{{ doc.created_at|date:"M d, Y" }}</td>
+          <td style="color:var(--muted);font-size:.82rem;">{{ doc.updated_at|date:"M d, Y" }}</td>
+          <td>
+            <div class="actions-cell">
+              <a href="{% url 'docs:document_detail' doc.id %}" class="btn btn-secondary btn-sm">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                <span lang="en">View</span><span lang="fr" style="display:none">Voir</span><span lang="ar" style="display:none" dir="rtl">عرض</span>
+              </a>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% endif %}
+
+    {% if not folders and not documents and not vaults %}
+    <div class="exp-empty">
+      <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <h3><span lang="en">No content yet</span><span lang="fr" style="display:none">Aucun contenu</span><span lang="ar" style="display:none" dir="rtl">لا يوجد محتوى بعد</span></h3>
+      <p><span lang="en">Start by uploading a document or creating folders</span><span lang="fr" style="display:none">Commencez par télécharger un document</span><span lang="ar" style="display:none" dir="rtl">ابدأ برفع مستند أو إنشاء مجلدات</span></p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,99 @@
+{% extends "app_base.html" %}
+{% load static %}
+{% block title %}Search — JoeLinkAI{% endblock %}
+{% block page_title %}Search{% endblock %}
+
+{% block extra_head %}
+<style>
+  .search-wrap { max-width: 760px; }
+  .search-bar-hero { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-xl); padding: 18px; margin-bottom: 22px; }
+  .search-field {
+    display: flex;
+    align-items: center;
+    background: var(--surface-2);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    transition: border-color var(--t);
+  }
+  .search-field:focus-within { border-color: var(--ink-2); }
+  .search-field-icon { padding: 0 14px; color: var(--muted); flex-shrink: 0; }
+  .search-field input { flex: 1; border: none; outline: none; background: transparent; padding: .85rem 0; font-size: 1rem; color: var(--ink); font-family: var(--font-body); }
+  .search-field input::placeholder { color: var(--muted); }
+  .search-result { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 14px 18px; margin-bottom: 10px; transition: border-color var(--t); }
+  .search-result:hover { border-color: var(--ink-2); }
+  .search-result-title { font-family: var(--font-head); font-weight: 800; font-size: .94rem; color: var(--ink); text-decoration: none; display: flex; align-items: center; gap: 8px; }
+  .search-result-title:hover { color: var(--ink); text-decoration: none; }
+  .search-result-meta { font-size: .76rem; color: var(--muted); margin-top: 5px; display: flex; gap: 14px; flex-wrap: wrap; }
+  .search-tag-pill { display: inline-block; background: var(--surface-2); color: var(--ink-2); border: 1px solid var(--border); padding: .12rem .45rem; border-radius: 20px; font-size: .64rem; font-weight: 600; font-family: var(--font-head); margin-right: 3px; }
+  .search-empty { text-align: center; padding: 56px 24px; color: var(--muted); background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-xl); }
+  .search-empty svg { color: var(--muted); margin-bottom: 14px; }
+  .search-empty h3 { font-family: var(--font-head); font-weight: 800; font-size: 1rem; color: var(--ink-2); margin-bottom: 6px; }
+  .search-empty p { font-size: .84rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="search-wrap">
+  <div class="search-bar-hero">
+    <form method="get" action="{% url 'docs:search' %}">
+      <div class="search-field">
+        <div class="search-field-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>
+        <input type="text" name="q" value="{{ q|default:'' }}" autofocus placeholder="Search documents by title, tags, or keywords…">
+        <button type="submit" class="btn btn-primary" style="border-radius:0;height:100%;padding:.85rem 20px;border-top:none;border-right:none;border-bottom:none;">
+          <span class="lang-text" data-lang="en">Search</span><span class="lang-text" data-lang="fr" style="display:none">Chercher</span><span class="lang-text" data-lang="ar" style="display:none" dir="rtl">بحث</span>
+        </button>
+      </div>
+    </form>
+    {% if q %}
+    <div style="margin-top:10px;font-size:.78rem;color:var(--muted);">
+      <span class="lang-text" data-lang="en">Showing results for <strong style="color:var(--ink);">"{{ q }}"</strong></span>
+      <span class="lang-text" data-lang="fr" style="display:none">Résultats pour <strong style="color:var(--ink);">"{{ q }}"</strong></span>
+      <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">نتائج <strong style="color:var(--ink);">"{{ q }}"</strong></span>
+      &nbsp;—&nbsp;
+      <a href="{% url 'docs:search' %}" style="color:var(--ink-2);font-weight:600;text-decoration:none;">
+        <span class="lang-text" data-lang="en">Clear</span><span class="lang-text" data-lang="fr" style="display:none">Effacer</span><span class="lang-text" data-lang="ar" style="display:none" dir="rtl">مسح</span>
+      </a>
+    </div>
+    {% endif %}
+  </div>
+
+  {% if q %}
+    {% if results %}
+      <div style="font-size:.74rem;color:var(--muted);margin-bottom:12px;font-family:var(--font-head);font-weight:600;">
+        {{ results|length }} <span class="lang-text" data-lang="en">result{{ results|length|pluralize }} found</span><span class="lang-text" data-lang="fr" style="display:none">résultat(s) trouvé(s)</span><span class="lang-text" data-lang="ar" style="display:none" dir="rtl">نتيجة (نتائج)</span>
+      </div>
+      {% for doc in results %}
+      <div class="search-result">
+        <a href="{% url 'docs:document_detail' doc.id %}" class="search-result-title">
+          {% if doc.vault %}
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          {% else %}
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--ink-2)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          {% endif %}
+          {{ doc.title }}
+        </a>
+        <div class="search-result-meta">
+          {% if doc.owner %}<span><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> {{ doc.owner.first_name }} {{ doc.owner.last_name }}</span>{% endif %}
+          <span><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> {{ doc.created_at|date:"M d, Y" }}</span>
+          {% if doc.folder %}<span><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle;"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg> {{ doc.folder.name }}</span>{% endif %}
+          {% if doc.access_tags %}<span>{% for tag in doc.get_tags_list %}<span class="search-tag-pill">{{ tag }}</span>{% endfor %}</span>{% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    {% else %}
+      <div class="search-empty">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <h3><span class="lang-text" data-lang="en">No results found</span><span class="lang-text" data-lang="fr" style="display:none">Aucun résultat trouvé</span><span class="lang-text" data-lang="ar" style="display:none" dir="rtl">لا توجد نتائج</span></h3>
+        <p><span class="lang-text" data-lang="en">No documents matched your search for "{{ q }}"</span><span class="lang-text" data-lang="fr" style="display:none">Aucun document ne correspond à "{{ q }}"</span><span class="lang-text" data-lang="ar" style="display:none" dir="rtl">لا توجد مستندات تطابق "{{ q }}"</span></p>
+      </div>
+    {% endif %}
+  {% else %}
+    <div class="search-empty">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <h3><span class="lang-text" data-lang="en">Search your documents</span><span class="lang-text" data-lang="fr" style="display:none">Rechercher vos documents</span><span class="lang-text" data-lang="ar" style="display:none" dir="rtl">ابحث في مستنداتك</span></h3>
+      <p><span class="lang-text" data-lang="en">Type keywords above to find documents by title or tags</span><span class="lang-text" data-lang="fr" style="display:none">Tapez des mots-clés pour trouver des documents par titre ou tags</span><span class="lang-text" data-lang="ar" style="display:none" dir="rtl">اكتب كلمات مفتاحية للبحث عن المستندات بالعنوان أو العلامات</span></p>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

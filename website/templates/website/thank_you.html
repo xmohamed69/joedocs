@@ -1,0 +1,94 @@
+{% extends "website/base.html" %}
+{% block title %}JoeLinkAI — Request Submitted{% endblock %}
+
+{% block extra_head %}
+<style>
+  .thankyou {
+    min-height: 60vh;
+    display: flex; align-items: center; justify-content: center;
+    padding: 4rem 1.5rem;
+    text-align: center;
+  }
+  .thankyou-box { max-width: 520px; }
+  .thankyou-icon {
+    width: 60px; height: 60px;
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 1.5rem;
+    color: var(--success);
+  }
+  .thankyou h1 {
+    font-size: 2rem; font-weight: 800;
+    letter-spacing: -.04em; margin-bottom: .75rem;
+  }
+  .thankyou p { color: var(--muted); margin-bottom: .75rem; font-size: .95rem; }
+
+  .steps {
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    text-align: left;
+    margin: 2rem 0;
+  }
+  .steps-label {
+    font-family: 'Syne', sans-serif;
+    font-size: .66rem; font-weight: 700;
+    letter-spacing: .1em; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 1.25rem;
+  }
+  .step {
+    display: flex; gap: .9rem; align-items: flex-start;
+    margin-bottom: .9rem;
+  }
+  .step:last-child { margin-bottom: 0; }
+  .step-num {
+    flex-shrink: 0;
+    width: 26px; height: 26px;
+    background: var(--ink); color: #fff;
+    border-radius: 50%;
+    font-family: 'Syne', sans-serif; font-weight: 800; font-size: .75rem;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .step p { font-size: .875rem; color: var(--ink-2); margin: 0; line-height: 1.55; }
+  .step p strong { color: var(--ink); }
+
+  .thankyou-actions { display: flex; gap: .75rem; justify-content: center; margin-top: .5rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="thankyou">
+  <div class="thankyou-box">
+    <div class="thankyou-icon">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+    </div>
+    <h1>Request received!</h1>
+    <p>Thank you for applying for a JoeLinkAI organization. Here's what happens next:</p>
+
+    <div class="steps">
+      <div class="steps-label">What's next</div>
+      <div class="step">
+        <div class="step-num">1</div>
+        <p><strong>Payment verification</strong> — We'll verify your BaridiMob transaction, usually within 24 hours.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <p><strong>Account creation</strong> — We'll set up your organization and admin account.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <p><strong>Credentials email</strong> — You'll receive your login details at the email address you provided.</p>
+      </div>
+    </div>
+
+    <p style="font-size:.875rem;">Questions? <a href="{% url 'website:contact' %}" style="font-weight:600;text-decoration:underline;text-underline-offset:2px;">Contact us</a> at any time.</p>
+
+    <div class="thankyou-actions" style="margin-top:2rem;">
+      <a class="btn btn-outline" href="{% url 'website:home' %}">Back to home</a>
+    </div>
+  </div>
+</section>
+{% endblock %}

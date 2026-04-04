@@ -1,0 +1,193 @@
+{% extends "app_base.html" %}
+{% load static %}
+{% block title %}Activity History — JoeLinkAI{% endblock %}
+{% block page_title %}History{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="page-header-text">
+    <h1 class="page-title">
+      <span class="lang-text" data-lang="en">Activity History</span>
+      <span class="lang-text" data-lang="fr" style="display:none">Historique d'activité</span>
+      <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">سجل النشاط</span>
+    </h1>
+    <p class="page-subtitle">
+      <span class="lang-text" data-lang="en">All user activity across your organization</span>
+      <span class="lang-text" data-lang="fr" style="display:none">Toute l'activité des utilisateurs de votre organisation</span>
+      <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">جميع أنشطة المستخدمين في منظمتك</span>
+    </p>
+  </div>
+</div>
+
+<div class="filter-bar">
+  <form method="get" action="{% url 'accounts:history' %}">
+    <div class="filter-grid">
+      <div class="filter-group">
+        <label class="form-label">
+          <span class="lang-text" data-lang="en">User</span>
+          <span class="lang-text" data-lang="fr" style="display:none">Utilisateur</span>
+          <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">المستخدم</span>
+        </label>
+        <select name="user_id" id="user_id">
+          <option value="">All Users</option>
+          {% for u in all_users %}
+            <option value="{{ u.id }}" {% if u.id|stringformat:"s" == selected_user_id %}selected{% endif %}>
+              {{ u.first_name }} {{ u.last_name }} ({{ u.username }})
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="filter-group">
+        <label class="form-label">
+          <span class="lang-text" data-lang="en">Action</span>
+          <span class="lang-text" data-lang="fr" style="display:none">Action</span>
+          <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">الإجراء</span>
+        </label>
+        <select name="action" id="action">
+          <option value="">All Actions</option>
+          <option value="LOGIN"          {% if selected_action == "LOGIN" %}selected{% endif %}>Login</option>
+          <option value="LOGOUT"         {% if selected_action == "LOGOUT" %}selected{% endif %}>Logout</option>
+          <option value="CREATED"        {% if selected_action == "CREATED" %}selected{% endif %}>User Created</option>
+          <option value="UPDATED"        {% if selected_action == "UPDATED" %}selected{% endif %}>User Updated</option>
+          <option value="PASSWORD_RESET" {% if selected_action == "PASSWORD_RESET" %}selected{% endif %}>Password Reset</option>
+          <option value="SUSPENDED"      {% if selected_action == "SUSPENDED" %}selected{% endif %}>Suspended</option>
+          <option value="REACTIVATED"    {% if selected_action == "REACTIVATED" %}selected{% endif %}>Reactivated</option>
+          <option value="DELETED"        {% if selected_action == "DELETED" %}selected{% endif %}>User Deleted</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label class="form-label">
+          <span class="lang-text" data-lang="en">From Date</span>
+          <span class="lang-text" data-lang="fr" style="display:none">Date de début</span>
+          <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">من تاريخ</span>
+        </label>
+        <input type="date" name="date_from" value="{{ date_from }}">
+      </div>
+      <div class="filter-group">
+        <label class="form-label">
+          <span class="lang-text" data-lang="en">To Date</span>
+          <span class="lang-text" data-lang="fr" style="display:none">Date de fin</span>
+          <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">إلى تاريخ</span>
+        </label>
+        <input type="date" name="date_to" value="{{ date_to }}">
+      </div>
+    </div>
+    <div class="filter-actions">
+      <button type="submit" class="btn btn-primary btn-sm">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <span class="lang-text" data-lang="en">Apply</span>
+        <span class="lang-text" data-lang="fr" style="display:none">Appliquer</span>
+        <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">تطبيق</span>
+      </button>
+      <a href="{% url 'accounts:history' %}" class="btn btn-secondary btn-sm">
+        <span class="lang-text" data-lang="en">Clear</span>
+        <span class="lang-text" data-lang="fr" style="display:none">Effacer</span>
+        <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">مسح</span>
+      </a>
+    </div>
+  </form>
+</div>
+
+{% if logs %}
+<div style="font-size:.78rem; color:var(--muted); margin-bottom:.75rem;">
+  <span class="lang-text" data-lang="en">Showing {{ logs|length }} recent activities</span>
+  <span class="lang-text" data-lang="fr" style="display:none">Affichage de {{ logs|length }} activités récentes</span>
+  <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">عرض {{ logs|length }} نشاط حديث</span>
+</div>
+
+<table class="data-table">
+  <thead>
+    <tr>
+      <th style="width:160px;">
+        <span class="lang-text" data-lang="en">Timestamp</span>
+        <span class="lang-text" data-lang="fr" style="display:none">Horodatage</span>
+        <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">التوقيت</span>
+      </th>
+      <th>
+        <span class="lang-text" data-lang="en">User</span>
+        <span class="lang-text" data-lang="fr" style="display:none">Utilisateur</span>
+        <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">المستخدم</span>
+      </th>
+      <th>
+        <span class="lang-text" data-lang="en">Action</span>
+        <span class="lang-text" data-lang="fr" style="display:none">Action</span>
+        <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">الإجراء</span>
+      </th>
+      <th>
+        <span class="lang-text" data-lang="en">Performed By</span>
+        <span class="lang-text" data-lang="fr" style="display:none">Effectué par</span>
+        <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">بواسطة</span>
+      </th>
+      <th>
+        <span class="lang-text" data-lang="en">Details</span>
+        <span class="lang-text" data-lang="fr" style="display:none">Détails</span>
+        <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">التفاصيل</span>
+      </th>
+      <th style="width:110px;">
+        <span class="lang-text" data-lang="en">IP Address</span>
+        <span class="lang-text" data-lang="fr" style="display:none">Adresse IP</span>
+        <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">عنوان IP</span>
+      </th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for log in logs %}
+    <tr>
+      <td><span class="monospace">{{ log.timestamp|date:"Y-m-d H:i:s" }}</span></td>
+      <td>
+        <div class="user-cell">
+          <div class="avatar-sm">
+            {{ log.user.first_name|first|upper }}{{ log.user.last_name|first|upper }}
+          </div>
+          <div>
+            <div style="font-weight:500; font-size:.84rem; color:var(--ink);">{{ log.user.first_name }} {{ log.user.last_name }}</div>
+            <div class="monospace">{{ log.user.username }}</div>
+          </div>
+        </div>
+      </td>
+      <td>
+        {% if log.action == "LOGIN" %}<span class="badge badge-success">{{ log.get_action_display }}</span>
+        {% elif log.action == "LOGOUT" %}<span class="badge badge-default">{{ log.get_action_display }}</span>
+        {% elif log.action == "CREATED" %}<span class="badge badge-info">{{ log.get_action_display }}</span>
+        {% elif log.action == "UPDATED" %}<span class="badge badge-info">{{ log.get_action_display }}</span>
+        {% elif log.action == "PASSWORD_RESET" %}<span class="badge badge-warning">{{ log.get_action_display }}</span>
+        {% elif log.action == "SUSPENDED" %}<span class="badge badge-danger">{{ log.get_action_display }}</span>
+        {% elif log.action == "REACTIVATED" %}<span class="badge badge-success">{{ log.get_action_display }}</span>
+        {% elif log.action == "DELETED" %}<span class="badge badge-danger">{{ log.get_action_display }}</span>
+        {% else %}<span class="badge badge-default">{{ log.get_action_display }}</span>{% endif %}
+      </td>
+      <td style="font-size:.84rem; color:var(--muted);">
+        {% if log.performed_by %}{{ log.performed_by.first_name }} {{ log.performed_by.last_name }}
+        {% else %}<span style="color:var(--muted-light);">System</span>{% endif %}
+      </td>
+      <td style="font-size:.82rem; color:var(--muted);">{{ log.details|default:"—" }}</td>
+      <td><span class="monospace">{{ log.ip_address|default:"—" }}</span></td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+{% else %}
+<div class="empty-state">
+  <div class="empty-state-icon">
+    <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+  </div>
+  <h3>
+    <span class="lang-text" data-lang="en">No activity logs found</span>
+    <span class="lang-text" data-lang="fr" style="display:none">Aucun journal d'activité trouvé</span>
+    <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">لم يتم العثور على سجلات نشاط</span>
+  </h3>
+  <p>
+    {% if selected_user_id or selected_action or date_from or date_to %}
+      <span class="lang-text" data-lang="en">Try adjusting your filters.</span>
+      <span class="lang-text" data-lang="fr" style="display:none">Essayez d'ajuster vos filtres.</span>
+      <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">حاول تعديل المرشحات.</span>
+    {% else %}
+      <span class="lang-text" data-lang="en">Activity will appear here once users start using the system.</span>
+      <span class="lang-text" data-lang="fr" style="display:none">L'activité apparaîtra ici une fois que les utilisateurs utiliseront le système.</span>
+      <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">سيظهر النشاط هنا بمجرد بدء المستخدمين في استخدام النظام.</span>
+    {% endif %}
+  </p>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,380 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign In — JoeLinkAI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Figtree:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:          #f5f5f5;
+      --surface:     #ffffff;
+      --surface-2:   #fafafa;
+      --border:      #e5e5e5;
+      --border-hover:#c0c0c0;
+      --ink:         #0a0a0a;
+      --ink-2:       #1a1a1a;
+      --muted:       #737373;
+      --danger:      #dc2626;
+      --danger-bg:   #fef2f2;
+      --danger-border:#fecaca;
+      --radius-sm:   6px;
+      --radius-md:   9px;
+      --radius-lg:   14px;
+      --t:           .14s ease;
+      --font-head:   'Syne', sans-serif;
+      --font-body:   'Figtree', sans-serif;
+    }
+
+    [data-theme="dark"] {
+      --bg:          #0a0a0a;
+      --surface:     #111111;
+      --surface-2:   #161616;
+      --border:      #222222;
+      --border-hover:#3a3a3a;
+      --ink:         #f0f0f0;
+      --ink-2:       #d4d4d4;
+      --muted:       #737373;
+      --danger-bg:   rgba(220,38,38,.1);
+      --danger-border:rgba(220,38,38,.25);
+    }
+
+    body {
+      font-family: var(--font-body);
+      background: var(--bg);
+      color: var(--ink);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+      -webkit-font-smoothing: antialiased;
+      transition: background var(--t), color var(--t);
+    }
+
+    .login-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      width: 100%;
+      max-width: 380px;
+      padding: 2.5rem 2rem;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 2.25rem;
+      padding-bottom: 1.75rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .brand-icon {
+      width: 36px; height: 36px;
+      background: #1a6ef5;
+      border-radius: var(--radius-sm);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      color: #ffffff;
+    }
+    .brand-name {
+      font-family: var(--font-head);
+      font-weight: 800;
+      font-size: 1.3rem;
+      letter-spacing: -.03em;
+      color: #1a6ef5;
+    }
+    .brand-name span { color: #1458cc; }
+
+    h2 {
+      font-family: var(--font-head);
+      font-weight: 700;
+      font-size: 1.15rem;
+      color: var(--ink);
+      margin-bottom: .375rem;
+      letter-spacing: -.02em;
+    }
+    .subtitle {
+      font-size: .875rem;
+      color: var(--muted);
+      margin-bottom: 1.75rem;
+      line-height: 1.6;
+    }
+
+    .alert {
+      padding: .75rem .875rem;
+      border-radius: var(--radius-md);
+      font-size: .8rem;
+      font-weight: 500;
+      margin-bottom: 1.25rem;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      line-height: 1.5;
+      border: 1px solid;
+    }
+    .alert-error {
+      background: var(--danger-bg);
+      border-color: var(--danger-border);
+      color: var(--danger);
+    }
+    .alert svg { flex-shrink: 0; margin-top: 1px; stroke-width: 1.5; }
+
+    .form-group { margin-bottom: 1.1rem; }
+
+    label {
+      display: block;
+      font-family: var(--font-head);
+      font-size: .62rem;
+      font-weight: 700;
+      color: var(--muted);
+      margin-bottom: .5rem;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+
+    input[type="text"],
+    input[type="password"] {
+      width: 100%;
+      padding: .7rem .875rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-size: .875rem;
+      font-family: var(--font-body);
+      color: var(--ink);
+      background: var(--surface-2);
+      transition: border-color var(--t), background var(--t);
+      outline: none;
+    }
+    input::placeholder { color: var(--muted); font-size: .85rem; }
+    input:hover { border-color: var(--border-hover); }
+    input:focus { border-color: var(--ink-2); background: var(--surface); }
+
+    .field-error {
+      color: var(--danger);
+      font-size: .75rem;
+      font-weight: 500;
+      margin-top: .375rem;
+    }
+
+    .remember-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 1.5rem 0;
+      cursor: pointer;
+      user-select: none;
+    }
+    .remember-row input[type="checkbox"] {
+      appearance: none;
+      -webkit-appearance: none;
+      width: 16px; height: 16px;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      background: transparent;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: all var(--t);
+      position: relative;
+    }
+    .remember-row input[type="checkbox"]:hover { border-color: var(--border-hover); }
+    .remember-row input[type="checkbox"]:checked {
+      background: var(--ink);
+      border-color: var(--ink);
+    }
+    .remember-row input[type="checkbox"]:checked::after {
+      content: '';
+      position: absolute;
+      left: 4px; top: 1px;
+      width: 4px; height: 8px;
+      border: solid var(--surface);
+      border-width: 0 1.5px 1.5px 0;
+      transform: rotate(45deg);
+    }
+    .remember-row span {
+      font-size: .8rem;
+      color: var(--muted);
+    }
+
+    .btn-submit {
+      width: 100%;
+      padding: .8rem;
+      background: var(--ink);
+      color: var(--surface);
+      border: none;
+      border-radius: var(--radius-sm);
+      font-size: .72rem;
+      font-weight: 700;
+      font-family: var(--font-head);
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: opacity var(--t), transform .1s;
+    }
+    .btn-submit:hover { opacity: .82; }
+    .btn-submit:active { transform: scale(.99); }
+
+    .card-footer {
+      text-align: center;
+      margin-top: 1.75rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--border);
+      font-size: .8rem;
+      color: var(--muted);
+    }
+    .card-footer a {
+      color: var(--ink);
+      font-weight: 600;
+      text-decoration: none;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 1px;
+      transition: border-color var(--t);
+    }
+    .card-footer a:hover { border-color: var(--ink); }
+
+    .theme-toggle-wrap { position: fixed; top: 1.25rem; right: 1.25rem; z-index: 100; }
+    .theme-toggle {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: .55rem .6rem;
+      cursor: pointer;
+      color: var(--muted);
+      display: flex; align-items: center; justify-content: center;
+      transition: all var(--t);
+    }
+    .theme-toggle:hover { border-color: var(--border-hover); color: var(--ink); }
+
+    @media (max-width: 440px) {
+      .login-card { padding: 2rem 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="theme-toggle-wrap">
+    <button class="theme-toggle" id="themeBtn" title="Toggle theme" aria-label="Toggle theme">
+      <svg id="themeIcon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+      </svg>
+    </button>
+  </div>
+
+  <div class="login-card">
+
+    <div class="brand">
+      <div class="brand-icon">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+      </div>
+      <div class="brand-name">JoeLink<span>AI</span></div>
+    </div>
+
+    <h2>Sign in</h2>
+    <p class="subtitle">Enter your credentials to access your workspace</p>
+
+    {% if messages %}
+      {% for message in messages %}
+        <div class="alert alert-error">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          {{ message }}
+        </div>
+      {% endfor %}
+    {% endif %}
+
+    {% if form.non_field_errors %}
+      {% for error in form.non_field_errors %}
+        <div class="alert alert-error">{{ error }}</div>
+      {% endfor %}
+    {% endif %}
+
+    <form method="post" action="{% url 'accounts:login' %}">
+      {% csrf_token %}
+
+      <div class="form-group">
+        <label for="id_org_id">Organization</label>
+        <input type="text" id="id_org_id" name="org_id"
+               value="{{ form.org_id.value|default:'' }}"
+               placeholder="Enter organization ID"
+               autocomplete="organization"
+               autofocus
+               {% if form.org_id.errors %}style="border-color:var(--danger)"{% endif %}>
+        {% for error in form.org_id.errors %}
+          <div class="field-error">{{ error }}</div>
+        {% endfor %}
+      </div>
+
+      <div class="form-group">
+        <label for="id_user_id">User ID</label>
+        <input type="text" id="id_user_id" name="user_id"
+               value="{{ form.user_id.value|default:'' }}"
+               placeholder="Enter your user ID"
+               autocomplete="username"
+               {% if form.user_id.errors %}style="border-color:var(--danger)"{% endif %}>
+        {% for error in form.user_id.errors %}
+          <div class="field-error">{{ error }}</div>
+        {% endfor %}
+      </div>
+
+      <div class="form-group">
+        <label for="id_password">Password</label>
+        <input type="password" id="id_password" name="password"
+               placeholder="Enter your password"
+               autocomplete="current-password"
+               {% if form.password.errors %}style="border-color:var(--danger)"{% endif %}>
+        {% for error in form.password.errors %}
+          <div class="field-error">{{ error }}</div>
+        {% endfor %}
+      </div>
+
+      <label class="remember-row" for="id_remember_me">
+        <input type="checkbox" id="id_remember_me" name="remember_me" value="on">
+        <span>Keep me signed in</span>
+      </label>
+
+      <button type="submit" class="btn-submit">Sign In</button>
+    </form>
+
+    {% if create_org_url %}
+    <div class="card-footer">
+      No organization? <a href="{{ create_org_url }}" target="_blank" rel="noopener noreferrer">Create one</a>
+    </div>
+    {% endif %}
+
+  </div>
+
+  <script>
+    (function () {
+      var html = document.documentElement;
+      var btn  = document.getElementById('themeBtn');
+      var icon = document.getElementById('themeIcon');
+
+      var MOON = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';
+      var SUN  = '<circle cx="12" cy="12" r="5"/>'
+               + '<line x1="12" y1="1" x2="12" y2="3"/>'
+               + '<line x1="12" y1="21" x2="12" y2="23"/>'
+               + '<line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>'
+               + '<line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>'
+               + '<line x1="1" y1="12" x2="3" y2="12"/>'
+               + '<line x1="21" y1="12" x2="23" y2="12"/>'
+               + '<line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>'
+               + '<line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>';
+
+      function apply(t) {
+        html.setAttribute('data-theme', t);
+        localStorage.setItem('jla-theme', t);
+        icon.innerHTML = (t === 'dark') ? MOON : SUN;
+      }
+      apply(localStorage.getItem('jla-theme') || 'light');
+      btn.addEventListener('click', function () {
+        apply(html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+      });
+    })();
+  </script>
+
+</body>
+</html>

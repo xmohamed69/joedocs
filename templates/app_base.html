@@ -1,0 +1,490 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}JoeLinkAI{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Figtree:wght@300;400;500;600&display=swap" rel="stylesheet">
+  {% load static %}
+  <link rel="stylesheet" href="{% static 'accounts/css/app.css' %}">
+  {% block extra_head %}{% endblock %}
+  {% block extra_css %}{% endblock %}
+</head>
+
+<body>
+{% csrf_token %}
+
+<!-- RAILWAY BACKGROUND -->
+<div class="railway-container">
+  <div class="glow" id="railway-glow"></div>
+</div>
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar" dir="ltr">
+
+    <a class="sidebar-brand" href="#">
+      <span class="brand-icon">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+      </span>
+      <span class="brand-name">JoeLink<span>AI</span></span>
+    </a>
+
+    <div class="org-badge">
+      <div class="org-name">{{ request.user.organization.name }}</div>
+      <div class="org-id">{{ request.user.organization.org_id }}</div>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-label">
+        <span class="lang-text" data-lang="en">Workspace</span>
+        <span class="lang-text" data-lang="fr" style="display:none">Espace de travail</span>
+        <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">مساحة العمل</span>
+      </div>
+      <nav class="nav">
+        {% if request.user.role == "OWNER" or request.user.role == "EDITOR" or request.user.role == "VIEWER" %}
+        <a href="{% url 'docs:home' %}" class="nav-link {% if request.resolver_match.namespace == 'docs' and request.resolver_match.url_name == 'home' %}active{% endif %}">
+          <span class="nav-icon">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+          </span>
+          <span class="nav-text lang-text" data-lang="en">Documents</span>
+          <span class="nav-text lang-text" data-lang="fr" style="display:none">Documents</span>
+          <span class="nav-text lang-text" data-lang="ar" style="display:none" dir="rtl">المستندات</span>
+        </a>
+        {% endif %}
+        {% if request.user.role == "EDITOR" %}
+        <a href="{% url 'docs:manage' %}" class="nav-link {% if request.resolver_match.url_name == 'manage' %}active{% endif %}">
+          <span class="nav-icon">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M16.24 7.76a6 6 0 0 1 0 8.49M4.93 4.93a10 10 0 0 0 0 14.14M7.76 7.76a6 6 0 0 0 0 8.49"/></svg>
+          </span>
+          <span class="nav-text lang-text" data-lang="en">AI Assistant</span>
+          <span class="nav-text lang-text" data-lang="fr" style="display:none">Assistant IA</span>
+          <span class="nav-text lang-text" data-lang="ar" style="display:none" dir="rtl">مساعد الذكاء الاصطناعي</span>
+        </a>
+        {% endif %}
+      </nav>
+    </div>
+
+    {% if request.user.role == "OWNER" or request.user.role == "ADMIN" %}
+    <div class="nav-section">
+      <div class="nav-label">
+        <span class="lang-text" data-lang="en">Administration</span>
+        <span class="lang-text" data-lang="fr" style="display:none">Administration</span>
+        <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">الإدارة</span>
+      </div>
+      <nav class="nav">
+        {% if request.user.role == "ADMIN" %}
+        <a href="{% url 'accounts:user_list' %}" class="nav-link {% if request.resolver_match.url_name == 'user_list' %}active{% endif %}">
+          <span class="nav-icon">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </span>
+          <span class="nav-text lang-text" data-lang="en">Users</span>
+          <span class="nav-text lang-text" data-lang="fr" style="display:none">Utilisateurs</span>
+          <span class="nav-text lang-text" data-lang="ar" style="display:none" dir="rtl">المستخدمون</span>
+        </a>
+        {% endif %}
+        {% if request.user.role == "OWNER" %}
+        <a href="{% url 'accounts:history' %}" class="nav-link {% if request.resolver_match.url_name == 'history' %}active{% endif %}">
+          <span class="nav-icon">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          </span>
+          <span class="nav-text lang-text" data-lang="en">History</span>
+          <span class="lang-text" data-lang="fr" style="display:none">Historique</span>
+          <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">السجل</span>
+        </a>
+        {% endif %}
+      </nav>
+    </div>
+    {% endif %}
+
+    <div class="sidebar-spacer"></div>
+
+    <div class="sidebar-footer">
+      <div class="sidebar-user-block">
+        <div class="sidebar-avatar">
+          {% if request.user.avatar %}
+            <img src="{{ request.user.avatar.url }}" alt="">
+          {% else %}
+            {{ request.user.first_name|default:"U"|slice:":1" }}{{ request.user.last_name|default:""|slice:":1" }}
+          {% endif %}
+        </div>
+        <div class="sidebar-user-info">
+          <div class="u-name">{{ request.user.first_name }} {{ request.user.last_name }}</div>
+          <div class="u-meta">
+            <span class="role-pill role-{{ request.user.role }}">{{ request.user.role }}</span>
+          </div>
+        </div>
+        <a href="{% url 'accounts:logout' %}" class="logout-icon" title="Sign out">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        </a>
+      </div>
+    </div>
+
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <div class="content" id="mainContent">
+
+    <header class="topbar" dir="ltr">
+      <div class="topbar-left">
+        <div class="topbar-breadcrumb">
+          {% block breadcrumb %}
+          <span class="bc-home">JoeLinkAI</span>
+          <span class="bc-sep">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </span>
+          <span class="bc-current">{% block page_title %}Dashboard{% endblock %}</span>
+          {% endblock %}
+        </div>
+      </div>
+
+      <div class="topbar-right">
+
+        <div class="lang-switcher" id="langSwitcher">
+          <button class="lang-btn active" data-lang="en" title="English">EN</button>
+          <button class="lang-btn" data-lang="fr" title="Français">FR</button>
+          <button class="lang-btn" data-lang="ar" title="العربية">AR</button>
+        </div>
+
+        <button class="theme-toggle" id="themeToggle" title="Toggle theme" aria-label="Toggle theme">
+          <span class="theme-icon light-icon">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+          </span>
+          <span class="theme-icon dark-icon" style="display:none">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+          </span>
+        </button>
+
+        <div class="profile-wrap">
+          <button class="profile-btn" id="profileBtn" aria-expanded="false" aria-haspopup="true">
+            <span class="profile-btn-avatar">
+              {% if request.user.avatar %}
+                <img src="{{ request.user.avatar.url }}" alt="">
+              {% else %}
+                {{ request.user.first_name|default:"U"|slice:":1" }}{{ request.user.last_name|default:""|slice:":1" }}
+              {% endif %}
+            </span>
+            <span>{{ request.user.first_name }}</span>
+            <svg class="chevron" id="chevron" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+
+          <div class="profile-menu" id="profileMenu" role="menu">
+            <div class="menu-header">
+              <div class="menu-avatar">{{ request.user.first_name|default:"U"|slice:":1" }}{{ request.user.last_name|default:""|slice:":1" }}</div>
+              <div>
+                <div class="m-name">{{ request.user.first_name }} {{ request.user.last_name }}</div>
+                <div class="m-sub">
+                  <span class="role-pill role-{{ request.user.role }}">{{ request.user.role }}</span>
+                  {% if request.user.profession_tag %}
+                  <span class="m-profession">{{ request.user.profession_tag }}</span>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+            <div class="menu-body">
+              <div class="menu-row">
+                <span class="mr-label lang-text" data-lang="en">User ID</span>
+                <span class="mr-label lang-text" data-lang="fr" style="display:none">ID Utilisateur</span>
+                <span class="mr-label lang-text" data-lang="ar" style="display:none" dir="rtl">معرف المستخدم</span>
+                <span class="mr-value">{{ request.user.username }}</span>
+              </div>
+              <div class="menu-row">
+                <span class="mr-label lang-text" data-lang="en">Organization</span>
+                <span class="mr-label lang-text" data-lang="fr" style="display:none">Organisation</span>
+                <span class="mr-label lang-text" data-lang="ar" style="display:none" dir="rtl">المنظمة</span>
+                <span class="mr-value" style="font-family:var(--font-body); font-size:.72rem; text-align:right;">{{ request.user.organization.name }}</span>
+              </div>
+              <div class="menu-row">
+                <span class="mr-label lang-text" data-lang="en">Org ID</span>
+                <span class="mr-label lang-text" data-lang="fr" style="display:none">ID Org</span>
+                <span class="mr-label lang-text" data-lang="ar" style="display:none" dir="rtl">رمز المنظمة</span>
+                <span class="mr-value">{{ request.user.organization.org_id }}</span>
+              </div>
+            </div>
+            <div class="menu-footer">
+              <a class="btn-logout" href="{% url 'accounts:logout' %}">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                <span class="lang-text" data-lang="en">Sign out</span>
+                <span class="lang-text" data-lang="fr" style="display:none">Déconnexion</span>
+                <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">تسجيل الخروج</span>
+              </a>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </header>
+
+    {% if messages %}
+    <div class="flash-messages">
+      {% for msg in messages %}
+      <div class="flash flash-{{ msg.tags }}">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          {% if 'error' in msg.tags or 'danger' in msg.tags %}
+          <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+          {% else %}
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+          {% endif %}
+        </svg>
+        {{ msg }}
+        <button class="flash-close" onclick="this.parentElement.remove()" aria-label="Dismiss">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <main class="page-body">
+      {% block content %}{% endblock %}
+    </main>
+
+  </div>
+</div>
+
+<script>
+(function () {
+  // Profile Dropdown
+  var btn  = document.getElementById("profileBtn");
+  var menu = document.getElementById("profileMenu");
+  var chev = document.getElementById("chevron");
+  if (btn && menu) {
+    var open  = function() { menu.classList.add("open"); chev && chev.classList.add("open"); btn.setAttribute("aria-expanded","true"); };
+    var close = function() { menu.classList.remove("open"); chev && chev.classList.remove("open"); btn.setAttribute("aria-expanded","false"); };
+    btn.addEventListener("click", function(e) { e.stopPropagation(); menu.classList.contains("open") ? close() : open(); });
+    document.addEventListener("click", function(e) { if (!menu.contains(e.target) && !btn.contains(e.target)) close(); });
+    document.addEventListener("keydown", function(e) { if (e.key === "Escape") close(); });
+  }
+
+  // Theme
+  var themeToggle = document.getElementById("themeToggle");
+  var html = document.documentElement;
+  var lightIcon = document.querySelector(".light-icon");
+  var darkIcon  = document.querySelector(".dark-icon");
+  function applyTheme(t) {
+    html.setAttribute("data-theme", t);
+    localStorage.setItem("jla-theme", t);
+    if (t === "dark") {
+      if (lightIcon) lightIcon.style.display = "none";
+      if (darkIcon)  darkIcon.style.display  = "";
+    } else {
+      if (lightIcon) lightIcon.style.display = "";
+      if (darkIcon)  darkIcon.style.display  = "none";
+    }
+  }
+  applyTheme(localStorage.getItem("jla-theme") || "light");
+  if (themeToggle) {
+    themeToggle.addEventListener("click", function() {
+      applyTheme(html.getAttribute("data-theme") === "dark" ? "light" : "dark");
+    });
+  }
+
+  // Language
+  (function() {
+    var STORAGE_KEY = "jla-lang";
+    function applyLang(lang) {
+      document.querySelectorAll(".lang-text[data-lang]").forEach(function(el) {
+        el.style.display = el.getAttribute("data-lang") === lang ? "" : "none";
+      });
+      document.documentElement.lang = lang;
+      // Set dir only on page content, not <html> (avoids flipping the flex layout)
+      var dir = lang === "ar" ? "rtl" : "ltr";
+      var mainContent = document.getElementById("mainContent");
+      if (mainContent) mainContent.dir = dir;
+      var sidebar = document.getElementById("sidebar");
+      if (sidebar) sidebar.dir = "ltr";
+      document.querySelectorAll(".lang-btn[data-lang]").forEach(function(b) {
+        b.classList.toggle("active", b.getAttribute("data-lang") === lang);
+      });
+      try { localStorage.setItem(STORAGE_KEY, lang); } catch(e) {}
+    }
+    document.querySelectorAll(".lang-btn[data-lang]").forEach(function(b) {
+      b.addEventListener("click", function() { applyLang(b.getAttribute("data-lang")); });
+    });
+    var saved = "en";
+    try { saved = localStorage.getItem(STORAGE_KEY) || "en"; } catch(e) {}
+    applyLang(saved);
+  })();
+
+  // Active nav
+  var currentPath = window.location.pathname;
+  document.querySelectorAll(".nav-link").forEach(function(link) {
+    if (link.getAttribute("href") === currentPath) link.classList.add("active");
+  });
+})();
+</script>
+
+{% if request.user.is_authenticated and request.user.can_use_ai %}
+<style>
+  .jla-fab{position:fixed;bottom:24px;right:24px;width:48px;height:48px;background:var(--ink);color:var(--surface);border:none;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:1000;box-shadow:0 4px 16px rgba(0,0,0,.18);transition:transform .15s,opacity .15s;}
+  .jla-fab:hover{transform:scale(1.08);opacity:.9;}
+  .jla-fab .jla-fab-close{display:none;}
+  .jla-fab.open .jla-fab-open{display:none;}
+  .jla-fab.open .jla-fab-close{display:block;}
+  .jla-panel{position:fixed;bottom:84px;right:24px;width:340px;height:480px;background:var(--surface);border:1px solid var(--border);border-radius:16px;display:flex;flex-direction:column;z-index:999;box-shadow:0 8px 32px rgba(0,0,0,.14);transform:scale(.92) translateY(12px);opacity:0;pointer-events:none;transition:transform .18s ease,opacity .18s ease;}
+  .jla-panel.open{transform:scale(1) translateY(0);opacity:1;pointer-events:all;}
+  @media(max-width:480px){.jla-panel{width:calc(100vw - 24px);right:12px;bottom:76px;}}
+  .jla-header{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:1px solid var(--border);flex-shrink:0;}
+  .jla-header-left{display:flex;align-items:center;gap:8px;}
+  .jla-header-icon{width:28px;height:28px;background:#1a6ef5;border-radius:7px;display:flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0;}
+  .jla-title{font-family:var(--font-head);font-weight:800;font-size:.82rem;color:var(--ink);letter-spacing:-.01em;}
+  .jla-subtitle{font-size:.65rem;color:var(--muted);}
+  .jla-header-actions{display:flex;gap:4px;}
+  .jla-icon-btn{width:26px;height:26px;background:none;border:none;color:var(--muted);cursor:pointer;border-radius:6px;display:flex;align-items:center;justify-content:center;transition:background var(--t),color var(--t);}
+  .jla-icon-btn:hover{background:var(--surface-2);color:var(--ink);}
+  .jla-messages{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:10px;scroll-behavior:smooth;}
+  .jla-empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:8px;padding:20px;color:var(--muted);}
+  .jla-empty-title{font-family:var(--font-head);font-weight:700;font-size:.82rem;color:var(--ink-2);}
+  .jla-empty-desc{font-size:.74rem;line-height:1.5;}
+  .jla-chips{display:flex;flex-wrap:wrap;gap:5px;justify-content:center;margin-top:4px;}
+  .jla-chip{background:var(--surface-2);border:1px solid var(--border);border-radius:20px;padding:.2rem .65rem;font-size:.68rem;color:var(--ink-2);font-family:var(--font-head);font-weight:600;cursor:pointer;transition:border-color var(--t);}
+  .jla-chip:hover{border-color:var(--ink-2);}
+  .jla-msg{display:flex;gap:7px;align-items:flex-end;animation:jlaMsgIn .15s ease;}
+  .jla-msg.user{flex-direction:row-reverse;}
+  @keyframes jlaMsgIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+  .jla-avatar{width:24px;height:24px;border-radius:50%;background:var(--surface-2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--muted);}
+  .jla-msg.user .jla-avatar{background:var(--ink);color:var(--surface);border-color:var(--ink);}
+  .jla-bubble{max-width:78%;padding:8px 11px;background:var(--surface-2);border:1px solid var(--border);border-radius:12px 12px 12px 3px;font-size:.8rem;line-height:1.5;color:var(--ink);white-space:pre-wrap;word-break:break-word;}
+  .jla-msg.user .jla-bubble{background:var(--ink);color:var(--surface);border-color:var(--ink);border-radius:12px 12px 3px 12px;}
+  .jla-typing{display:none;}
+  .jla-typing.on{display:flex;}
+  .jla-dots{display:flex;gap:3px;align-items:center;padding:2px 0;}
+  .jla-dots span{width:5px;height:5px;background:var(--muted);border-radius:50%;animation:jlaDot 1.1s infinite;}
+  .jla-dots span:nth-child(2){animation-delay:.18s;}
+  .jla-dots span:nth-child(3){animation-delay:.36s;}
+  @keyframes jlaDot{0%,80%,100%{transform:scale(.7);opacity:.4}40%{transform:scale(1);opacity:1}}
+  .jla-inputbar{border-top:1px solid var(--border);padding:10px;display:flex;gap:7px;align-items:flex-end;flex-shrink:0;}
+  .jla-inputbar textarea{flex:1;border:1px solid var(--border);border-radius:10px;padding:7px 10px;font-size:.8rem;font-family:var(--font-body);color:var(--ink);background:var(--surface-2);resize:none;outline:none;max-height:80px;min-height:34px;transition:border-color var(--t);line-height:1.4;}
+  .jla-inputbar textarea:focus{border-color:var(--ink-2);background:var(--surface);}
+  .jla-inputbar textarea::placeholder{color:var(--muted);}
+  .jla-send{width:34px;height:34px;border-radius:50%;background:var(--ink);color:var(--surface);border:none;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:opacity .14s,transform .1s;}
+  .jla-send:hover{opacity:.85;transform:scale(1.05);}
+  .jla-send:disabled{opacity:.3;cursor:not-allowed;transform:none;}
+  .jla-fullpage{display:block;text-align:center;font-size:.66rem;color:var(--muted);padding:5px;border-top:1px solid var(--border);text-decoration:none;flex-shrink:0;transition:color var(--t),background var(--t);}
+  .jla-fullpage:hover{color:var(--ink);background:var(--surface-2);}
+</style>
+
+<button class="jla-fab" id="jlaFab" aria-label="Open AI Assistant">
+  <span class="jla-fab-open"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span>
+  <span class="jla-fab-close"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>
+</button>
+
+<div class="jla-panel" id="jlaPanel">
+  <div class="jla-header">
+    <div class="jla-header-left">
+      <div class="jla-header-icon"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></div>
+      <div><div class="jla-title">AI Assistant</div><div class="jla-subtitle">Powered by Gemini 2.0 Flash</div></div>
+    </div>
+    <div class="jla-header-actions">
+      <button class="jla-icon-btn" id="jlaClear" title="Clear chat"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg></button>
+      <button class="jla-icon-btn" id="jlaClose" title="Close"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+  </div>
+  <div class="jla-messages" id="jlaMessages">
+    <div class="jla-empty" id="jlaEmpty">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      <div class="jla-empty-title">Ask me anything</div>
+      <div class="jla-empty-desc">I know your documents, folders, and org structure.</div>
+      <div class="jla-chips">
+        <span class="jla-chip">What docs do we have?</span>
+        <span class="jla-chip">Find contracts</span>
+        <span class="jla-chip">Org structure</span>
+      </div>
+    </div>
+    <div class="jla-msg jla-typing" id="jlaTyping">
+      <div class="jla-avatar"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
+      <div class="jla-bubble"><div class="jla-dots"><span></span><span></span><span></span></div></div>
+    </div>
+  </div>
+  <div class="jla-inputbar">
+    <textarea id="jlaInput" rows="1" placeholder="Ask about your documents..."></textarea>
+    <button class="jla-send" id="jlaSend" disabled><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button>
+  </div>
+  <a href="/docs/ai/chat/" class="jla-fullpage">Open full chat &#8599;</a>
+</div>
+
+<script>
+(function(){
+  var fab=document.getElementById("jlaFab"),panel=document.getElementById("jlaPanel"),closeBtn=document.getElementById("jlaClose"),clearBtn=document.getElementById("jlaClear"),msgs=document.getElementById("jlaMessages"),empty=document.getElementById("jlaEmpty"),typing=document.getElementById("jlaTyping"),input=document.getElementById("jlaInput"),sendBtn=document.getElementById("jlaSend"),history=[],isOpen=false;
+  function toggle(){isOpen=!isOpen;fab.classList.toggle("open",isOpen);panel.classList.toggle("open",isOpen);if(isOpen)input.focus();}
+  fab.addEventListener("click",toggle);
+  closeBtn.addEventListener("click",toggle);
+  clearBtn.addEventListener("click",function(){history=[];Array.from(msgs.children).forEach(function(el){if(el.id!=="jlaEmpty"&&el.id!=="jlaTyping")el.remove();});empty.style.display="";});
+  document.querySelectorAll(".jla-chip").forEach(function(c){c.addEventListener("click",function(){input.value=c.textContent.trim();input.dispatchEvent(new Event("input"));doSend();});});
+  input.addEventListener("input",function(){input.style.height="auto";input.style.height=Math.min(input.scrollHeight,80)+"px";sendBtn.disabled=!input.value.trim();});
+  input.addEventListener("keydown",function(e){if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();if(!sendBtn.disabled)doSend();}});
+  sendBtn.addEventListener("click",doSend);
+  async function doSend(){
+    var text=input.value.trim();if(!text)return;
+    empty.style.display="none";
+    bubble("user",text);history.push({role:"user",content:text});
+    input.value="";input.style.height="auto";sendBtn.disabled=true;
+    typing.classList.add("on");msgs.scrollTop=msgs.scrollHeight;
+    try{
+      var r=await fetch("/docs/ai/chat/send/",{method:"POST",headers:{"Content-Type":"application/json","X-CSRFToken":csrf()},body:JSON.stringify({messages:history})});
+      var d=await r.json();
+      if(!r.ok)throw new Error(d.error||"Server error");
+      history.push({role:"assistant",content:d.reply});
+      typing.classList.remove("on");bubble("assistant",d.reply);
+    }catch(e){typing.classList.remove("on");bubble("assistant","⚠ "+(e.message||"Something went wrong."));}
+  }
+  function bubble(role,text){
+    var isUser=role==="user",w=document.createElement("div");w.className="jla-msg"+(isUser?" user":"");
+    var av=document.createElement("div");av.className="jla-avatar";
+    av.innerHTML=isUser?"<svg width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2'/><circle cx='12' cy='7' r='4'/></svg>":"<svg width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z'/></svg>";
+    var b=document.createElement("div");b.className="jla-bubble";b.textContent=text;
+    w.appendChild(av);w.appendChild(b);msgs.insertBefore(w,typing);msgs.scrollTop=msgs.scrollHeight;
+  }
+  function csrf(){var c=document.cookie.split(";").find(function(x){return x.trim().startsWith("csrftoken=");});if(c)return c.split("=")[1];var i=document.querySelector("input[name=csrfmiddlewaretoken]");return i?i.value:"";}
+})();
+</script>
+{% endif %}
+
+<!-- RAILWAY BACKGROUND STYLES & SCRIPT -->
+<style>
+  .railway-container {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background-image: radial-gradient(var(--border) 1px, transparent 1px);
+    background-size: 28px 28px;
+  }
+  .glow {
+    position: absolute;
+    width: 500px;
+    height: 500px;
+    background: radial-gradient(circle, rgba(26,110,245,0.10) 0%, transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+    transform: translate(-50%, -50%);
+    will-change: left, top;
+    transition: left 0.08s ease, top 0.08s ease;
+  }
+  [data-theme="dark"] .glow {
+    background: radial-gradient(circle, rgba(26,110,245,0.18) 0%, transparent 70%);
+  }
+</style>
+<script>
+  (function() {
+    var glow = document.getElementById('railway-glow');
+    if (!glow) return;
+    var raf;
+    var mx = window.innerWidth / 2, my = window.innerHeight / 2;
+    window.addEventListener('mousemove', function(e) {
+      mx = e.clientX; my = e.clientY;
+      if (!raf) raf = requestAnimationFrame(function() {
+        glow.style.left = mx + 'px';
+        glow.style.top  = my + 'px';
+        raf = null;
+      });
+    });
+    glow.style.left = mx + 'px';
+    glow.style.top  = my + 'px';
+  })();
+</script>
+
+</body>
+</html>

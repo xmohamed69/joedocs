@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Loading — JoeLinkAI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Figtree:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #f5f5f5;
+      --surface:   #ffffff;
+      --border:    #e5e5e5;
+      --ink:       #0a0a0a;
+      --muted:     #737373;
+      --t:         .14s ease;
+      --font-head: 'Syne', sans-serif;
+      --font-body: 'Figtree', sans-serif;
+    }
+    [data-theme="dark"] {
+      --bg:      #0a0a0a;
+      --surface: #111111;
+      --border:  #222222;
+      --ink:     #f0f0f0;
+      --muted:   #737373;
+    }
+
+    body {
+      font-family: var(--font-body);
+      background: var(--bg);
+      color: var(--ink);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      -webkit-font-smoothing: antialiased;
+      transition: background var(--t);
+    }
+
+    /* Brand */
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 2.5rem;
+      animation: fadeUp .5s ease both;
+    }
+    .brand-icon {
+      width: 40px; height: 40px;
+      background: #1a6ef5;
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      color: #fff;
+    }
+    .brand-name {
+      font-family: var(--font-head);
+      font-weight: 800;
+      font-size: 1.5rem;
+      letter-spacing: -.03em;
+      color: #1a6ef5;
+    }
+    .brand-name span { color: #1458cc; }
+
+    /* Spinner */
+    .spinner-wrap {
+      margin-bottom: 1.5rem;
+      animation: fadeUp .5s .1s ease both;
+    }
+    .spinner {
+      width: 32px; height: 32px;
+      border: 2px solid var(--border);
+      border-top-color: var(--ink);
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Status text */
+    .status {
+      font-size: .8rem;
+      color: var(--muted);
+      letter-spacing: .04em;
+      animation: fadeUp .5s .2s ease both;
+      min-height: 1.2em;
+      text-align: center;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="brand">
+    <div class="brand-icon">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+    </div>
+    <div class="brand-name">JoeLink<span>AI</span></div>
+  </div>
+
+  <div class="spinner-wrap">
+    <div class="spinner"></div>
+  </div>
+
+  <p class="status" id="statusMsg">Starting up…</p>
+
+  <script>
+    // Match saved theme immediately
+    (function(){
+      var t = localStorage.getItem('jla-theme') || 'light';
+      document.documentElement.setAttribute('data-theme', t);
+    })();
+
+    // Cycle status messages
+    var messages = [
+      'Starting up…',
+      'Loading your workspace…',
+      'Almost ready…',
+    ];
+    var i = 0;
+    var el = document.getElementById('statusMsg');
+    setInterval(function(){
+      i = (i + 1) % messages.length;
+      el.textContent = messages[i];
+    }, 1800);
+
+    // The desktop client (main.py) replaces this page once the server responds.
+    // If used as a Django view, redirect after a short delay:
+    {% if redirect_url %}
+    setTimeout(function(){ window.location.href = "{{ redirect_url }}"; }, 1500);
+    {% endif %}
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,83 @@
+{% extends "_special_base.html" %}
+{% block title %}No Connection · JoeLinkAI{% endblock %}
+
+{% block extra_style %}
+<style>
+  .pulse-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--muted);
+    display: inline-block;
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: .3; transform: scale(.9); }
+    50%       { opacity: 1;  transform: scale(1.1); }
+  }
+  .status-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: .76rem;
+    color: var(--muted);
+    margin-bottom: 1.75rem;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-card">
+  <div class="brand">
+    <div class="brand-icon">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+    </div>
+    <div class="brand-name">JoeLink<span>AI</span></div>
+  </div>
+
+  <div class="page-icon">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="1" y1="1" x2="23" y2="23"/><path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"/><path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"/><path d="M10.71 5.05A16 16 0 0 1 22.56 9"/><path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>
+  </div>
+
+  <h1 class="page-title">You're offline</h1>
+  <p class="page-desc">Can't reach the server. Check your internet connection and try again.</p>
+
+  <div class="status-row">
+    <span class="pulse-dot"></span>
+    <span id="statusText">Waiting for connection…</span>
+  </div>
+
+  <div class="btn-row">
+    <button onclick="tryReconnect()" class="btn btn-primary" id="retryBtn">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+      Try again
+    </button>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_script %}
+<script>
+  function tryReconnect() {
+    var btn = document.getElementById('retryBtn');
+    var txt = document.getElementById('statusText');
+    btn.disabled = true;
+    txt.textContent = 'Checking…';
+    setTimeout(function() {
+      if (navigator.onLine) {
+        txt.textContent = 'Back online — reloading…';
+        setTimeout(function(){ location.reload(); }, 600);
+      } else {
+        txt.textContent = 'Still offline. Try again shortly.';
+        btn.disabled = false;
+      }
+    }, 1000);
+  }
+
+  // Auto-reload when connection returns
+  window.addEventListener('online', function() {
+    document.getElementById('statusText').textContent = 'Back online — reloading…';
+    setTimeout(function(){ location.reload(); }, 800);
+  });
+</script>
+{% endblock %}

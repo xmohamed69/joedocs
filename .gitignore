@@ -1,0 +1,14 @@
+venv312/
+dist/
+build/
+__pycache__/
+*.pyc
+*.log
+*.sqlite3
+.env
+.env.docker
+media/
+staticfiles/
+LibreOffice/
+Output/
+installer/

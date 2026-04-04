@@ -1,0 +1,172 @@
+{% extends "app_base.html" %}
+{% load static %}
+{% block title %}Edit User — {{ user_obj.username }}{% endblock %}
+{% block page_title %}Edit User{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="page-header-text">
+    <h1 class="page-title">
+      <span class="lang-text" data-lang="en">Edit User</span>
+      <span class="lang-text" data-lang="fr" style="display:none">Modifier l'utilisateur</span>
+      <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">تعديل المستخدم</span>
+      <span style="font-size:.9rem; font-weight:400; color:var(--muted); font-family:var(--font-body);">{{ user_obj.username }}</span>
+    </h1>
+    <div style="display:flex; align-items:center; gap:.5rem; margin-top:.5rem;">
+      <span class="role-pill role-{{ user_obj.role }}">{{ user_obj.get_role_display }}</span>
+      {% if not user_obj.is_active %}
+        <span class="badge badge-inactive">
+          <span class="lang-text" data-lang="en">Inactive</span>
+          <span class="lang-text" data-lang="fr" style="display:none">Inactif</span>
+          <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">غير نشط</span>
+        </span>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<div style="max-width:720px;">
+  <div class="card">
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+
+      {% if form.non_field_errors %}
+        <div class="alert alert-error">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          {{ form.non_field_errors }}
+        </div>
+      {% endif %}
+
+      <div class="section-title">
+        <span class="lang-text" data-lang="en">Basic Information</span>
+        <span class="lang-text" data-lang="fr" style="display:none">Informations de base</span>
+        <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">المعلومات الأساسية</span>
+      </div>
+      <div class="form-grid form-grid-2" style="margin-bottom:1.75rem;">
+        <div class="form-group">
+          <label>{{ form.first_name.label }}</label>
+          {{ form.first_name }}
+          {% if form.first_name.errors %}{{ form.first_name.errors }}{% endif %}
+        </div>
+        <div class="form-group">
+          <label>{{ form.last_name.label }}</label>
+          {{ form.last_name }}
+          {% if form.last_name.errors %}{{ form.last_name.errors }}{% endif %}
+        </div>
+        <div class="form-group">
+          <label>{{ form.email.label }}</label>
+          {{ form.email }}
+          {% if form.email.errors %}{{ form.email.errors }}{% endif %}
+        </div>
+        <div class="form-group">
+          <label>{{ form.birth_date.label }}</label>
+          {{ form.birth_date }}
+          {% if form.birth_date.errors %}{{ form.birth_date.errors }}{% endif %}
+        </div>
+      </div>
+
+      <div class="section-title">
+        <span class="lang-text" data-lang="en">Role &amp; Permissions</span>
+        <span class="lang-text" data-lang="fr" style="display:none">Rôle et permissions</span>
+        <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">الدور والصلاحيات</span>
+      </div>
+      <div class="form-grid form-grid-2" style="margin-bottom:1.75rem;">
+        <div class="form-group">
+          <label>{{ form.role.label }}</label>
+          {{ form.role }}
+          {% if form.role.errors %}{{ form.role.errors }}{% endif %}
+        </div>
+        <div class="form-group">
+          <label>{{ form.profession_tag.label }}</label>
+          {{ form.profession_tag }}
+          {% if form.profession_tag.help_text %}<div class="form-help">{{ form.profession_tag.help_text }}</div>{% endif %}
+          {% if form.profession_tag.errors %}{{ form.profession_tag.errors }}{% endif %}
+        </div>
+        <div class="form-group">
+          <label class="checkbox-row">
+            {{ form.is_active }}
+            <span style="font-size:.875rem; font-family:var(--font-body); text-transform:none; letter-spacing:0; color:var(--ink);">{{ form.is_active.label }}</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="section-title">
+        <span class="lang-text" data-lang="en">Profile Picture</span>
+        <span class="lang-text" data-lang="fr" style="display:none">Photo de profil</span>
+        <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">الصورة الشخصية</span>
+      </div>
+      <div class="form-group" style="margin-bottom:1.75rem;">
+        <label>{{ form.avatar.label }}</label>
+        {{ form.avatar }}
+        {% if user_obj.avatar %}
+          <div class="avatar-preview">
+            <img src="{{ user_obj.avatar.url }}" alt="Current avatar">
+          </div>
+        {% endif %}
+        {% if form.avatar.errors %}{{ form.avatar.errors }}{% endif %}
+      </div>
+
+      {% if form.can_use_ai %}
+        <div class="section-title">
+          <span class="lang-text" data-lang="en">AI Features</span>
+          <span class="lang-text" data-lang="fr" style="display:none">Fonctionnalités IA</span>
+          <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">ميزات الذكاء الاصطناعي</span>
+        </div>
+        <div class="form-group" style="margin-bottom:1.75rem;">
+          <label class="checkbox-row">
+            {{ form.can_use_ai }}
+            <span style="font-size:.875rem; font-family:var(--font-body); text-transform:none; letter-spacing:0; color:var(--ink);">{{ form.can_use_ai.label }}</span>
+          </label>
+          {% if form.can_use_ai.help_text %}<div class="form-help" style="margin-top:.5rem;">{{ form.can_use_ai.help_text }}</div>{% endif %}
+          {% if user_obj.organization.plan %}
+            <div class="plan-pill {% if user_obj.organization.plan.ai_enabled %}enabled{% else %}disabled{% endif %}">
+              <span class="lang-text" data-lang="en">Plan: {{ user_obj.organization.plan.name }} — AI {% if user_obj.organization.plan.ai_enabled %}Available{% else %}Not available{% endif %}</span>
+              <span class="lang-text" data-lang="fr" style="display:none">Plan: {{ user_obj.organization.plan.name }}</span>
+              <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">الخطة: {{ user_obj.organization.plan.name }}</span>
+            </div>
+          {% endif %}
+          {% if user_obj.organization.plan.ai_enabled %}
+            <div class="ai-info-box">
+              <h4>
+                <span class="lang-text" data-lang="en">Available AI Features</span>
+                <span class="lang-text" data-lang="fr" style="display:none">Fonctionnalités IA disponibles</span>
+                <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">ميزات الذكاء الاصطناعي المتاحة</span>
+              </h4>
+              <ul>
+                <li class="lang-text" data-lang="en"><strong>Smart Titles</strong> — Automatically suggests meaningful titles when uploading</li>
+                <li class="lang-text" data-lang="en"><strong>Summarization</strong> — Generate AI-powered document summaries</li>
+                <li class="lang-text" data-lang="en"><strong>Metadata Suggestions</strong> — Intelligent tag and category recommendations</li>
+                <li class="lang-text" data-lang="fr" style="display:none"><strong>Titres intelligents</strong> — Suggestions automatiques lors du téléchargement</li>
+                <li class="lang-text" data-lang="fr" style="display:none"><strong>Résumés</strong> — Génération de résumés de documents par IA</li>
+                <li class="lang-text" data-lang="ar" style="display:none" dir="rtl"><strong>عناوين ذكية</strong> — اقتراح عناوين عند الرفع</li>
+                <li class="lang-text" data-lang="ar" style="display:none" dir="rtl"><strong>ملخصات</strong> — إنشاء ملخصات بالذكاء الاصطناعي</li>
+              </ul>
+            </div>
+          {% else %}
+            <div class="alert alert-warning" style="margin-top:.75rem;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+              <span class="lang-text" data-lang="en">AI not available on this organization's plan.</span>
+              <span class="lang-text" data-lang="fr" style="display:none">IA non disponible dans le plan de cette organisation.</span>
+              <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">الذكاء الاصطناعي غير متاح في خطة هذه المنظمة.</span>
+            </div>
+          {% endif %}
+        </div>
+      {% endif %}
+
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          <span class="lang-text" data-lang="en">Save Changes</span>
+          <span class="lang-text" data-lang="fr" style="display:none">Enregistrer</span>
+          <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">حفظ التغييرات</span>
+        </button>
+        <a href="{% url 'accounts:user_list' %}" class="btn btn-secondary">
+          <span class="lang-text" data-lang="en">Cancel</span>
+          <span class="lang-text" data-lang="fr" style="display:none">Annuler</span>
+          <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">إلغاء</span>
+        </a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

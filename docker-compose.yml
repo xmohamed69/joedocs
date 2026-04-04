@@ -1,0 +1,40 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:16
+    container_name: joedocs_db
+    restart: always
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  web:
+    build: .
+    container_name: joedocs_web
+    restart: always
+    depends_on:
+      db:
+        condition: service_healthy # waits for DB to be ready before starting
+    env_file:
+      - .env.docker
+    volumes:
+      - media:/app/media # persist uploaded files across restarts
+      - static:/app/staticfiles # persist collected static files
+    ports:
+      - "8000:8000"
+
+volumes:
+  pgdata:
+  media:
+  static:

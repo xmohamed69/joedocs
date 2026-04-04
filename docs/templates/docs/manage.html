@@ -1,0 +1,165 @@
+{% extends "app_base.html" %}
+{% load static %}
+{% block title %}Manage Structure — JoeLinkAI{% endblock %}
+{% block page_title %}Manage{% endblock %}
+
+{% block extra_head %}
+<style>
+  .manage-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 18px; }
+  .manage-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; }
+  .manage-card-header { padding: 11px 16px; background: var(--surface-2); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+  .manage-card-title { font-family: var(--font-head); font-size: .65rem; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+  .manage-card-body { padding: 8px; }
+  .manage-item { display: flex; justify-content: space-between; align-items: center; padding: 9px 10px; border-radius: var(--radius-sm); transition: background var(--t); }
+  .manage-item:hover { background: var(--surface-2); }
+  .manage-item-name { font-size: .84rem; color: var(--ink-2); font-weight: 500; }
+  .manage-item-meta { font-size: .72rem; color: var(--muted); margin-left: 5px; }
+  .manage-item-actions { display: flex; gap: 5px; align-items: center; }
+  .manage-empty { text-align: center; padding: 28px 16px; color: var(--muted); }
+  .manage-empty svg { margin-bottom: 8px; }
+  .manage-empty p { font-size: .82rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="page-header-text">
+    <h1 class="page-title">
+      <span class="lang-text" data-lang="en">Manage Structure</span>
+      <span class="lang-text" data-lang="fr" style="display:none">Gérer la structure</span>
+      <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">إدارة الهيكل</span>
+    </h1>
+    <p class="page-subtitle">
+      <span class="lang-text" data-lang="en">Organize groups, folders, and vaults</span>
+      <span class="lang-text" data-lang="fr" style="display:none">Organiser les groupes, dossiers et coffres</span>
+      <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">تنظيم المجموعات والمجلدات والخزائن</span>
+    </p>
+  </div>
+  <a href="{% url 'docs:home' %}" class="btn btn-secondary">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+    <span class="lang-text" data-lang="en">Back to Files</span>
+    <span class="lang-text" data-lang="fr" style="display:none">Retour aux fichiers</span>
+    <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">العودة إلى الملفات</span>
+  </a>
+</div>
+
+<div class="manage-grid">
+  <!-- Folder Groups -->
+  <div class="manage-card">
+    <div class="manage-card-header">
+      <span class="manage-card-title">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+        <span class="lang-text" data-lang="en">Folder Groups</span><span class="lang-text" data-lang="fr" style="display:none">Groupes de dossiers</span><span class="lang-text" data-lang="ar" style="display:none" dir="rtl">مجموعات المجلدات</span>
+      </span>
+      <a href="{% url 'docs:group_create' %}" class="btn btn-primary btn-sm">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        <span class="lang-text" data-lang="en">Create</span><span class="lang-text" data-lang="fr" style="display:none">Créer</span><span class="lang-text" data-lang="ar" style="display:none" dir="rtl">إنشاء</span>
+      </a>
+    </div>
+    <div class="manage-card-body">
+      {% if groups %}
+        {% for group in groups %}
+        <div class="manage-item">
+          <span class="manage-item-name">{{ group.name }}</span>
+          <div class="manage-item-actions">
+            <form action="{% url 'docs:group_delete' groupid=group.id %}" method="post" style="margin:0;" onsubmit="return confirm('Delete this group?');">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-outline-danger btn-sm">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+                <span class="lang-text" data-lang="en">Delete</span><span class="lang-text" data-lang="fr" style="display:none">Supprimer</span><span class="lang-text" data-lang="ar" style="display:none" dir="rtl">حذف</span>
+              </button>
+            </form>
+          </div>
+        </div>
+        {% endfor %}
+      {% else %}
+        <div class="manage-empty">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+          <p><span class="lang-text" data-lang="en">No folder groups yet</span><span class="lang-text" data-lang="fr" style="display:none">Aucun groupe de dossiers</span><span class="lang-text" data-lang="ar" style="display:none" dir="rtl">لا توجد مجموعات مجلدات بعد</span></p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Folders -->
+  <div class="manage-card">
+    <div class="manage-card-header">
+      <span class="manage-card-title">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+        <span class="lang-text" data-lang="en">Folders</span><span class="lang-text" data-lang="fr" style="display:none">Dossiers</span><span class="lang-text" data-lang="ar" style="display:none" dir="rtl">المجلدات</span>
+      </span>
+      <a href="{% url 'docs:folder_create' %}" class="btn btn-primary btn-sm">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        <span class="lang-text" data-lang="en">Create</span><span class="lang-text" data-lang="fr" style="display:none">Créer</span><span class="lang-text" data-lang="ar" style="display:none" dir="rtl">إنشاء</span>
+      </a>
+    </div>
+    <div class="manage-card-body">
+      {% if folders %}
+        {% for folder in folders %}
+        <div class="manage-item">
+          <div>
+            <span class="manage-item-name">{{ folder.name }}</span>
+            <span class="manage-item-meta">({{ folder.group.name }})</span>
+          </div>
+          <form action="{% url 'docs:folder_delete' folderid=folder.id %}" method="post" style="margin:0;" onsubmit="return confirm('Delete this folder and all contents?');">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-outline-danger btn-sm">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>
+              <span class="lang-text" data-lang="en">Delete</span><span class="lang-text" data-lang="fr" style="display:none">Supprimer</span><span class="lang-text" data-lang="ar" style="display:none" dir="rtl">حذف</span>
+            </button>
+          </form>
+        </div>
+        {% endfor %}
+      {% else %}
+        <div class="manage-empty">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+          <p><span class="lang-text" data-lang="en">No folders yet</span><span class="lang-text" data-lang="fr" style="display:none">Aucun dossier</span><span class="lang-text" data-lang="ar" style="display:none" dir="rtl">لا توجد مجلدات بعد</span></p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Secure Vaults -->
+  <div class="manage-card">
+    <div class="manage-card-header">
+      <span class="manage-card-title">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        <span class="lang-text" data-lang="en">Secure Vaults</span><span class="lang-text" data-lang="fr" style="display:none">Coffres sécurisés</span><span class="lang-text" data-lang="ar" style="display:none" dir="rtl">الخزائن الآمنة</span>
+      </span>
+      <a href="{% url 'docs:vault_create' %}" class="btn btn-primary btn-sm">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        <span class="lang-text" data-lang="en">Create</span><span class="lang-text" data-lang="fr" style="display:none">Créer</span><span class="lang-text" data-lang="ar" style="display:none" dir="rtl">إنشاء</span>
+      </a>
+    </div>
+    <div class="manage-card-body">
+      {% if vaults %}
+        {% for vault in vaults %}
+        <div class="manage-item">
+          <span class="manage-item-name">{{ vault.name }}</span>
+          <div class="manage-item-actions">
+            {% if is_owner %}
+            <a href="{% url 'docs:vault_reset_pin' vaultid=vault.id %}" class="btn btn-secondary btn-sm">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+              <span class="lang-text" data-lang="en">Reset PIN</span><span class="lang-text" data-lang="fr" style="display:none">Réinitialiser PIN</span><span class="lang-text" data-lang="ar" style="display:none" dir="rtl">إعادة تعيين PIN</span>
+            </a>
+            {% endif %}
+            <form action="{% url 'docs:vault_delete' vaultid=vault.id %}" method="post" style="margin:0;" onsubmit="return confirm('Delete this vault and all documents inside?');">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-outline-danger btn-sm">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>
+                <span class="lang-text" data-lang="en">Delete</span><span class="lang-text" data-lang="fr" style="display:none">Supprimer</span><span class="lang-text" data-lang="ar" style="display:none" dir="rtl">حذف</span>
+              </button>
+            </form>
+          </div>
+        </div>
+        {% endfor %}
+      {% else %}
+        <div class="manage-empty">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          <p><span class="lang-text" data-lang="en">No vaults yet</span><span class="lang-text" data-lang="fr" style="display:none">Aucun coffre</span><span class="lang-text" data-lang="ar" style="display:none" dir="rtl">لا توجد خزائن بعد</span></p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

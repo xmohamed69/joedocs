@@ -1,0 +1,157 @@
+{% extends "app_base.html" %}
+{% load static %}
+{% block title %}Users — JoeLinkAI{% endblock %}
+{% block page_title %}Users{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="page-header-text">
+    <h1 class="page-title">
+      <span class="lang-text" data-lang="en">User Management</span>
+      <span class="lang-text" data-lang="fr" style="display:none">Gestion des utilisateurs</span>
+      <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">إدارة المستخدمين</span>
+    </h1>
+    <p class="page-subtitle">
+      <span class="lang-text" data-lang="en">{{ users|length }} user(s) in your organization</span>
+      <span class="lang-text" data-lang="fr" style="display:none">{{ users|length }} utilisateur(s) dans votre organisation</span>
+      <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">{{ users|length }} مستخدم في منظمتك</span>
+    </p>
+  </div>
+  <a href="{% url 'accounts:user_create' %}" class="btn btn-primary">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    <span class="lang-text" data-lang="en">Create User</span>
+    <span class="lang-text" data-lang="fr" style="display:none">Créer utilisateur</span>
+    <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">إنشاء مستخدم</span>
+  </a>
+</div>
+
+<table class="data-table">
+  <thead>
+    <tr>
+      <th>
+        <span class="lang-text" data-lang="en">User</span>
+        <span class="lang-text" data-lang="fr" style="display:none">Utilisateur</span>
+        <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">المستخدم</span>
+      </th>
+      <th>
+        <span class="lang-text" data-lang="en">User ID</span>
+        <span class="lang-text" data-lang="fr" style="display:none">ID</span>
+        <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">المعرف</span>
+      </th>
+      <th>
+        <span class="lang-text" data-lang="en">Role</span>
+        <span class="lang-text" data-lang="fr" style="display:none">Rôle</span>
+        <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">الدور</span>
+      </th>
+      <th>
+        <span class="lang-text" data-lang="en">Status</span>
+        <span class="lang-text" data-lang="fr" style="display:none">Statut</span>
+        <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">الحالة</span>
+      </th>
+      <th>
+        <span class="lang-text" data-lang="en">Last Login</span>
+        <span class="lang-text" data-lang="fr" style="display:none">Dernière connexion</span>
+        <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">آخر دخول</span>
+      </th>
+      <th style="text-align:right;">
+        <span class="lang-text" data-lang="en">Actions</span>
+        <span class="lang-text" data-lang="fr" style="display:none">Actions</span>
+        <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">الإجراءات</span>
+      </th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for u in users %}
+    <tr>
+      <td>
+        <div class="user-cell">
+          <div class="avatar-sm">
+            {% if u.avatar %}
+              <img src="{{ u.avatar.url }}" alt="">
+            {% else %}
+              {{ u.first_name|first|upper }}{{ u.last_name|first|upper }}
+            {% endif %}
+          </div>
+          <div>
+            <div style="font-weight:500; font-size:.875rem; color:var(--ink);">{{ u.first_name }} {{ u.last_name }}</div>
+            <div style="font-size:.75rem; color:var(--muted);">{{ u.email }}</div>
+          </div>
+        </div>
+      </td>
+      <td><span class="monospace">{{ u.username }}</span></td>
+      <td><span class="role-pill role-{{ u.role }}">{{ u.get_role_display }}</span></td>
+      <td>
+        {% if u.is_suspended %}
+          <span class="badge badge-suspended">
+            <span class="lang-text" data-lang="en">Suspended</span>
+            <span class="lang-text" data-lang="fr" style="display:none">Suspendu</span>
+            <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">موقوف</span>
+          </span>
+        {% elif u.is_active %}
+          <span class="badge badge-active">
+            <span class="lang-text" data-lang="en">Active</span>
+            <span class="lang-text" data-lang="fr" style="display:none">Actif</span>
+            <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">نشط</span>
+          </span>
+        {% else %}
+          <span class="badge badge-inactive">
+            <span class="lang-text" data-lang="en">Inactive</span>
+            <span class="lang-text" data-lang="fr" style="display:none">Inactif</span>
+            <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">غير نشط</span>
+          </span>
+        {% endif %}
+      </td>
+      <td style="color:var(--muted); font-size:.8rem;">
+        {% if u.last_login %}{{ u.last_login|date:"M d, Y" }}{% else %}<span style="color:var(--muted-light);">—</span>{% endif %}
+      </td>
+      <td>
+        <div class="actions-cell">
+          <a href="{% url 'accounts:user_edit' u.pk %}" class="btn btn-secondary btn-sm">
+            <span class="lang-text" data-lang="en">Edit</span>
+            <span class="lang-text" data-lang="fr" style="display:none">Modifier</span>
+            <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">تعديل</span>
+          </a>
+          <a href="{% url 'accounts:user_reset_password' u.pk %}" class="btn btn-secondary btn-sm">
+            <span class="lang-text" data-lang="en">Reset PW</span>
+            <span class="lang-text" data-lang="fr" style="display:none">Réinitialiser</span>
+            <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">إعادة تعيين</span>
+          </a>
+          <form method="post" action="{% url 'accounts:user_suspend' u.pk %}" style="display:inline;">
+            {% csrf_token %}
+            {% if u.is_suspended %}
+              <button type="submit" class="btn btn-secondary btn-sm">
+                <span class="lang-text" data-lang="en">Reactivate</span>
+                <span class="lang-text" data-lang="fr" style="display:none">Réactiver</span>
+                <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">إعادة تفعيل</span>
+              </button>
+            {% else %}
+              <button type="submit" class="btn btn-secondary btn-sm">
+                <span class="lang-text" data-lang="en">Suspend</span>
+                <span class="lang-text" data-lang="fr" style="display:none">Suspendre</span>
+                <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">إيقاف</span>
+              </button>
+            {% endif %}
+          </form>
+          <a href="{% url 'accounts:user_delete' u.pk %}" class="btn btn-outline-danger btn-sm">
+            <span class="lang-text" data-lang="en">Delete</span>
+            <span class="lang-text" data-lang="fr" style="display:none">Supprimer</span>
+            <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">حذف</span>
+          </a>
+        </div>
+      </td>
+    </tr>
+    {% empty %}
+    <tr>
+      <td colspan="6" style="text-align:center; padding:4rem 2rem; color:var(--muted);">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:.875rem; opacity:.4;"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <div style="font-size:.875rem;">
+          <span class="lang-text" data-lang="en">No users found.</span>
+          <span class="lang-text" data-lang="fr" style="display:none">Aucun utilisateur trouvé.</span>
+          <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">لم يتم العثور على مستخدمين.</span>
+        </div>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

@@ -1,0 +1,311 @@
+{% extends "admin/change_form.html" %}
+{% load static %}
+
+{% block field_sets %}
+    {{ block.super }}
+    
+    <style>
+        .generator-buttons {
+            background: #f8f9fa;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .generator-buttons h3 {
+            margin-top: 0;
+            margin-bottom: 15px;
+            font-size: 14px;
+            color: #333;
+        }
+        .generator-btn {
+            background: #02223cd2;
+            color: rgb(255, 255, 255);
+            border: none;
+            padding: 8px 16px;
+            margin-right: 10px;
+            margin-bottom: 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: background 0.2s;
+        }
+        .generator-btn:hover {
+            background: #417690;
+        }
+        .generator-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .generator-help {
+            margin-top: 10px;
+            font-size: 12px;
+            color: #666;
+            font-style: italic;
+        }
+        .reset-pwd-btn {
+            background-color: #dc3545;
+            padding: 10px 20px;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            display: inline-block;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .reset-pwd-btn:hover {
+            background-color: #c82333;
+            color: white;
+        }
+        
+        /* Modal Styles */
+        .pwd-modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+        }
+        .pwd-modal {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            text-align: center;
+        }
+        .pwd-modal h2 {
+            color: #28a745;
+            margin: 0 0 20px 0;
+        }
+        .pwd-modal .password-display {
+            background: #f8f9fa;
+            border: 3px dashed #28a745;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 24px;
+            letter-spacing: 2px;
+            user-select: all;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .pwd-modal .password-display:hover {
+            background: #e9ecef;
+        }
+        .pwd-modal .warning {
+            background: #fff3cd;
+            color: #856404;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            font-size: 14px;
+        }
+        .pwd-modal .btn-copy {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+        }
+        .pwd-modal .btn-copy:hover {
+            background: #218838;
+        }
+        .pwd-modal .btn-close {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+        }
+        .pwd-modal .btn-close:hover {
+            background: #5a6268;
+        }
+        .pwd-modal .copied-msg {
+            color: #28a745;
+            font-weight: bold;
+            margin-top: 10px;
+            display: none;
+        }
+    </style>
+    
+    {% if not original %}
+        {# Adding new user - show generator buttons #}
+        <div class="generator-buttons">
+            <h3>🔧 Quick Generators</h3>
+            <button type="button" id="generate-user-id-btn" class="generator-btn">
+                🆔 Generate User ID
+            </button>
+            <button type="button" id="generate-password-btn" class="generator-btn">
+                🔑 Generate Password
+            </button>
+            <div class="generator-help">
+                <strong>Tip:</strong> You can leave these fields blank and they'll be auto-generated when you save. 
+                Or use the buttons above to generate and preview them first.
+            </div>
+        </div>
+    {% endif %}
+    
+    {% if original and original.organization and not original.is_superuser %}
+        {# Editing existing org user - show reset password button #}
+        <div class="generator-buttons">
+            <h3>🔑 Password Management</h3>
+            <p style="margin-bottom: 10px;">
+                Click the button below to generate a new random password for this user.
+            </p>
+            <button type="button" class="reset-pwd-btn" id="reset-pwd-btn" 
+                    data-user-id="{{ original.pk }}" 
+                    data-username="{{ original.username }}">
+                🔑 Reset Password
+            </button>
+            <div class="generator-help">
+                <strong>Note:</strong> The new password will be generated and displayed in a popup.
+                Make sure to copy it immediately!
+            </div>
+        </div>
+        
+        <!-- Password Modal -->
+        <div class="pwd-modal-overlay" id="pwd-modal">
+            <div class="pwd-modal">
+                <h2>🔑 Password Reset Successful!</h2>
+                <p>New password for <strong id="modal-username"></strong>:</p>
+                <div class="password-display" id="modal-password" title="Click to select"></div>
+                <div class="warning">
+                    <strong>⚠️ Important:</strong> Copy this password now! It will NOT be shown again.
+                </div>
+                <div>
+                    <button type="button" class="btn-copy" id="btn-copy-pwd">📋 Copy Password</button>
+                    <button type="button" class="btn-close" id="btn-close-modal">Close</button>
+                </div>
+                <div class="copied-msg" id="copied-msg">✓ Password copied to clipboard!</div>
+            </div>
+        </div>
+        
+        <script>
+        (function() {
+            const resetBtn = document.getElementById('reset-pwd-btn');
+            const modal = document.getElementById('pwd-modal');
+            const modalUsername = document.getElementById('modal-username');
+            const modalPassword = document.getElementById('modal-password');
+            const copyBtn = document.getElementById('btn-copy-pwd');
+            const closeBtn = document.getElementById('btn-close-modal');
+            const copiedMsg = document.getElementById('copied-msg');
+            
+            function getCookie(name) {
+                let cookieValue = null;
+                if (document.cookie && document.cookie !== '') {
+                    const cookies = document.cookie.split(';');
+                    for (let i = 0; i < cookies.length; i++) {
+                        const cookie = cookies[i].trim();
+                        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                            break;
+                        }
+                    }
+                }
+                return cookieValue;
+            }
+            
+            function showModal(username, password) {
+                modalUsername.textContent = username;
+                modalPassword.textContent = password;
+                modal.style.display = 'flex';
+                copiedMsg.style.display = 'none';
+            }
+            
+            function hideModal() {
+                modal.style.display = 'none';
+                modalPassword.textContent = '';
+            }
+            
+            function copyPassword() {
+                const password = modalPassword.textContent;
+                navigator.clipboard.writeText(password).then(function() {
+                    copiedMsg.style.display = 'block';
+                    copyBtn.textContent = '✓ Copied!';
+                    setTimeout(function() {
+                        copyBtn.textContent = '📋 Copy Password';
+                    }, 2000);
+                }).catch(function(err) {
+                    // Fallback for older browsers
+                    const textArea = document.createElement('textarea');
+                    textArea.value = password;
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textArea);
+                    copiedMsg.style.display = 'block';
+                });
+            }
+            
+            resetBtn.addEventListener('click', function() {
+                const userId = this.dataset.userId;
+                const username = this.dataset.username;
+                
+                if (!confirm('Are you sure you want to reset the password for ' + username + '?\n\nThis will immediately change their password.')) {
+                    return;
+                }
+                
+                resetBtn.disabled = true;
+                resetBtn.textContent = '⏳ Resetting...';
+                
+                fetch('/admin/accounts/user/' + userId + '/reset-pwd-ajax/', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': getCookie('csrftoken'),
+                        'Content-Type': 'application/json',
+                    },
+                })
+                .then(response => response.json())
+                .then(data => {
+                    resetBtn.disabled = false;
+                    resetBtn.textContent = '🔑 Reset Password';
+                    
+                    if (data.success) {
+                        showModal(data.username, data.password);
+                    } else {
+                        alert('Error: ' + (data.error || 'Unknown error'));
+                    }
+                })
+                .catch(error => {
+                    resetBtn.disabled = false;
+                    resetBtn.textContent = '🔑 Reset Password';
+                    alert('Error resetting password: ' + error);
+                });
+            });
+            
+            copyBtn.addEventListener('click', copyPassword);
+            
+            modalPassword.addEventListener('click', copyPassword);
+            
+            closeBtn.addEventListener('click', hideModal);
+            
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) {
+                    hideModal();
+                }
+            });
+            
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && modal.style.display === 'flex') {
+                    hideModal();
+                }
+            });
+        })();
+        </script>
+    {% endif %}
+{% endblock %}

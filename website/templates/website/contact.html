@@ -1,0 +1,63 @@
+{% extends "website/base.html" %}
+{% block title %}JoeLinkAI — Contact Us{% endblock %}
+
+{% block extra_head %}
+<style>
+  .contact-page { padding: 4rem 1.5rem 5rem; }
+  .contact-page h1 {
+    font-size: 2rem; font-weight: 800;
+    letter-spacing: -.04em; margin-bottom: .4rem;
+  }
+  .contact-page .subtitle { color: var(--muted); margin-bottom: 2.5rem; }
+  .contact-page .btn-primary { padding: .75rem 2rem; font-size: .95rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="contact-page container-sm">
+  <h1>Get in touch</h1>
+  <p class="subtitle">Have a question or need help? We usually respond within one business day.</p>
+
+  <p style="font-size:.83rem;color:var(--muted);margin-bottom:1.75rem;">
+    You can also contact us directly at
+    <a href="mailto:{{ contact_email }}">{{ contact_email }}</a>.
+  </p>
+
+  {% if success %}
+    <div class="alert alert-success">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle;margin-right:6px;"><polyline points="20 6 9 17 4 12"/></svg>
+      Your message was sent successfully. We'll get back to you soon.
+    </div>
+  {% endif %}
+
+  {% if not success %}
+  <form method="post">
+    {% csrf_token %}
+
+    {% if form.non_field_errors %}
+      <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+    {% endif %}
+
+    <div class="form-group">
+      {{ form.name.label_tag }}
+      {{ form.name }}
+      {{ form.name.errors }}
+    </div>
+
+    <div class="form-group">
+      {{ form.email.label_tag }}
+      {{ form.email }}
+      {{ form.email.errors }}
+    </div>
+
+    <div class="form-group">
+      {{ form.message.label_tag }}
+      {{ form.message }}
+      {{ form.message.errors }}
+    </div>
+
+    <button type="submit" class="btn btn-primary btn-lg">Send message</button>
+  </form>
+  {% endif %}
+</div>
+{% endblock %}

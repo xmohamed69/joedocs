@@ -1,0 +1,220 @@
+{% extends "app_base.html" %}
+{% block title %}Create User — JoeLinkAI{% endblock %}
+{% block page_title %}Create User{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="page-header-text">
+    <h1 class="page-title">
+      <span class="lang-text" data-lang="en">Create User</span>
+      <span class="lang-text" data-lang="fr" style="display:none">Créer un utilisateur</span>
+      <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">إنشاء مستخدم</span>
+    </h1>
+    <p class="page-subtitle">
+      <span class="lang-text" data-lang="en">Admin access only. Generate credentials and set role.</span>
+      <span class="lang-text" data-lang="fr" style="display:none">Accès administrateur uniquement.</span>
+      <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">وصول المسؤول فقط.</span>
+    </p>
+  </div>
+</div>
+
+<div style="max-width:720px;">
+  <div class="card">
+    <form method="post" novalidate>
+      {% csrf_token %}
+
+      {% if form.non_field_errors %}
+        <div class="alert alert-error">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          {{ form.non_field_errors }}
+        </div>
+      {% endif %}
+
+      <div class="section-title">
+        <span class="lang-text" data-lang="en">Personal Information</span>
+        <span class="lang-text" data-lang="fr" style="display:none">Informations personnelles</span>
+        <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">المعلومات الشخصية</span>
+      </div>
+
+      <div class="form-grid form-grid-2" style="margin-bottom:1.5rem;">
+        <div class="form-group">
+          <label>
+            <span class="lang-text" data-lang="en">First Name</span>
+            <span class="lang-text" data-lang="fr" style="display:none">Prénom</span>
+            <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">الاسم الأول</span>
+          </label>
+          {{ form.first_name }}
+          {{ form.first_name.errors }}
+        </div>
+        <div class="form-group">
+          <label>
+            <span class="lang-text" data-lang="en">Last Name</span>
+            <span class="lang-text" data-lang="fr" style="display:none">Nom</span>
+            <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">اسم العائلة</span>
+          </label>
+          {{ form.last_name }}
+          {{ form.last_name.errors }}
+        </div>
+        <div class="form-group">
+          <label>
+            <span class="lang-text" data-lang="en">Birth Date</span>
+            <span class="lang-text" data-lang="fr" style="display:none">Date de naissance</span>
+            <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">تاريخ الميلاد</span>
+          </label>
+          {{ form.birth_date }}
+          {{ form.birth_date.errors }}
+        </div>
+        <div class="form-group">
+          <label>
+            <span class="lang-text" data-lang="en">Profession</span>
+            <span class="lang-text" data-lang="fr" style="display:none">Profession</span>
+            <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">المهنة</span>
+          </label>
+          {{ form.profession_tag }}
+          {{ form.profession_tag.errors }}
+        </div>
+      </div>
+
+      <div class="section-title">
+        <span class="lang-text" data-lang="en">Role &amp; Permissions</span>
+        <span class="lang-text" data-lang="fr" style="display:none">Rôle et permissions</span>
+        <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">الدور والصلاحيات</span>
+      </div>
+
+      <div class="form-grid form-grid-2" style="margin-bottom:1.5rem;">
+        <div class="form-group">
+          <label>
+            <span class="lang-text" data-lang="en">Role</span>
+            <span class="lang-text" data-lang="fr" style="display:none">Rôle</span>
+            <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">الدور</span>
+          </label>
+          {{ form.role }}
+          {{ form.role.errors }}
+        </div>
+        <div class="form-group">
+          <label>
+            <span class="lang-text" data-lang="en">AI Access</span>
+            <span class="lang-text" data-lang="fr" style="display:none">Accès IA</span>
+            <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">وصول الذكاء الاصطناعي</span>
+          </label>
+          <label class="checkbox-row" style="margin-top:.5rem;">
+            {{ form.can_use_ai }}
+            <span style="font-size:.875rem; font-family:var(--font-body); text-transform:none; letter-spacing:0; color:var(--ink);">{{ form.can_use_ai.label }}</span>
+          </label>
+          {{ form.can_use_ai.errors }}
+        </div>
+        <div class="form-group">
+          <label>
+            <span class="lang-text" data-lang="en">Active</span>
+            <span class="lang-text" data-lang="fr" style="display:none">Actif</span>
+            <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">نشط</span>
+          </label>
+          <label class="checkbox-row" style="margin-top:.5rem;">
+            {{ form.is_active }}
+            <span style="font-size:.875rem; font-family:var(--font-body); text-transform:none; letter-spacing:0; color:var(--ink);">{{ form.is_active.label }}</span>
+          </label>
+          {{ form.is_active.errors }}
+        </div>
+      </div>
+
+      <div class="section-title">
+        <span class="lang-text" data-lang="en">Credentials</span>
+        <span class="lang-text" data-lang="fr" style="display:none">Identifiants</span>
+        <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">بيانات الاعتماد</span>
+      </div>
+
+      <div class="form-grid form-grid-2" style="margin-bottom:1.5rem;">
+        <div class="form-group">
+          <label>
+            <span class="lang-text" data-lang="en">User ID (10 digits)</span>
+            <span class="lang-text" data-lang="fr" style="display:none">ID utilisateur (10 chiffres)</span>
+            <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">معرف المستخدم (10 أرقام)</span>
+          </label>
+          <input type="text" id="id_username" name="username" placeholder="10-digit ID" required>
+          {% if form.username.errors %}
+            <div style="color:var(--danger); font-size:.78rem; margin-top:.3rem;">{{ form.username.errors }}</div>
+          {% endif %}
+          <div style="margin-top:.6rem;">
+            <button type="button" class="btn btn-secondary btn-sm" id="btnGenId">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+              <span class="lang-text" data-lang="en">Generate</span>
+              <span class="lang-text" data-lang="fr" style="display:none">Générer</span>
+              <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">توليد</span>
+            </button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>
+            <span class="lang-text" data-lang="en">Password</span>
+            <span class="lang-text" data-lang="fr" style="display:none">Mot de passe</span>
+            <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">كلمة المرور</span>
+          </label>
+          <input type="text" id="id_password" name="password" placeholder="Click Generate" required>
+          {% if form.password.errors %}
+            <div style="color:var(--danger); font-size:.78rem; margin-top:.3rem;">{{ form.password.errors }}</div>
+          {% elif form.raw_password.errors %}
+            <div style="color:var(--danger); font-size:.78rem; margin-top:.3rem;">{{ form.raw_password.errors }}</div>
+          {% endif %}
+          <div style="margin-top:.6rem;">
+            <button type="button" class="btn btn-secondary btn-sm" id="btnGenPw">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              <span class="lang-text" data-lang="en">Generate</span>
+              <span class="lang-text" data-lang="fr" style="display:none">Générer</span>
+              <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">توليد</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          <span class="lang-text" data-lang="en">Create User</span>
+          <span class="lang-text" data-lang="fr" style="display:none">Créer</span>
+          <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">إنشاء</span>
+        </button>
+        <a href="{% url 'accounts:user_list' %}" class="btn btn-secondary">
+          <span class="lang-text" data-lang="en">Cancel</span>
+          <span class="lang-text" data-lang="fr" style="display:none">Annuler</span>
+          <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">إلغاء</span>
+        </a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  (function(){
+    var btnId       = document.getElementById("btnGenId");
+    var btnPw       = document.getElementById("btnGenPw");
+    var inputUserId = document.getElementById("id_username");
+    var inputPw     = document.getElementById("id_password");
+
+    async function getJson(url){
+      var res = await fetch(url, { credentials: "same-origin" });
+      if (!res.ok) { var txt = await res.text(); throw new Error(txt || ("HTTP " + res.status)); }
+      return await res.json();
+    }
+
+    if (btnId && inputUserId){
+      btnId.addEventListener("click", async function() {
+        try {
+          var data = await getJson("{% url 'accounts:api_generate_user_id' %}");
+          if (data.user_id) { inputUserId.value = data.user_id; }
+          else { alert("API did not return user_id"); }
+        } catch (e) { alert("Generate ID failed: " + e.message); }
+      });
+    }
+
+    if (btnPw && inputPw){
+      btnPw.addEventListener("click", async function() {
+        try {
+          var data = await getJson("{% url 'accounts:api_generate_password' %}");
+          if (data.password) { inputPw.value = data.password; }
+          else { alert("API did not return password"); }
+        } catch (e) { alert("Generate Password failed: " + e.message); }
+      });
+    }
+  })();
+</script>
+{% endblock %}

@@ -1,0 +1,61 @@
+{% extends "admin/change_form.html" %}
+{% load static %}
+
+{% block field_sets %}
+    {{ block.super }}
+    
+    {# Only show generator button when adding a new organization #}
+    {% if not original %}
+    <style>
+        .generator-buttons {
+            background: #f8f9fa;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .generator-buttons h3 {
+            margin-top: 0;
+            margin-bottom: 15px;
+            font-size: 14px;
+            color: #333;
+        }
+        .generator-btn {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            margin-right: 10px;
+            margin-bottom: 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: background 0.2s;
+        }
+        .generator-btn:hover {
+            background: #45a049;
+        }
+        .generator-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .generator-help {
+            margin-top: 10px;
+            font-size: 12px;
+            color: #666;
+            font-style: italic;
+        }
+    </style>
+    
+    <div class="generator-buttons">
+        <h3> Organization ID Generator</h3>
+        <button type="button" id="generate-org-id-btn" class="generator-btn">
+             Generate Organization ID
+        </button>
+        <div class="generator-help">
+             <strong>Tip:</strong> You can leave the Organization ID field blank and it will be auto-generated when you save. 
+            Or use the button above to generate and preview it first.
+        </div>
+    </div>
+    {% endif %}
+{% endblock %}

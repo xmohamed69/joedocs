@@ -1,0 +1,32 @@
+{% extends "_special_base.html" %}
+{% block title %}500 — Server Error · JoeLinkAI{% endblock %}
+
+{% block content %}
+<div class="page-card">
+  <div class="brand">
+    <div class="brand-icon">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+    </div>
+    <div class="brand-name">JoeLink<span>AI</span></div>
+  </div>
+
+  <div class="page-icon">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+  </div>
+
+  <div class="page-code">500</div>
+  <h1 class="page-title">Something went wrong</h1>
+  <p class="page-desc">An unexpected error occurred on our end. Try refreshing the page — if the problem persists, contact your administrator.</p>
+
+  <div class="btn-row">
+    <a href="javascript:location.reload()" class="btn btn-secondary">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+      Retry
+    </a>
+    <a href="/docs/" class="btn btn-primary">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+      Home
+    </a>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,396 @@
+{% extends "app_base.html" %}
+{% load static %}
+{% block title %}Upload Document — JoeLinkAI{% endblock %}
+{% block page_title %}Upload{% endblock %}
+
+{% block extra_head %}
+<style>
+  .upload-wrap { max-width: 640px; }
+  .drop-zone {
+    border: 2px dashed var(--border);
+    border-radius: var(--radius-lg);
+    padding: 40px 24px;
+    text-align: center;
+    background: var(--surface-2);
+    cursor: pointer;
+    transition: border-color var(--t), background var(--t);
+  }
+  .drop-zone:hover, .drop-zone.dragover {
+    border-color: var(--ink-2);
+    background: var(--surface);
+  }
+  .drop-zone-icon { color: var(--muted); margin-bottom: 12px; }
+  .drop-zone-text { font-size: .88rem; color: var(--muted); }
+  .drop-zone-text strong { color: var(--ink); }
+  .file-selected {
+    display: none;
+    margin-top: 12px;
+    padding: .6rem .9rem;
+    background: rgba(22,163,74,.07);
+    border: 1px solid rgba(22,163,74,.2);
+    border-radius: var(--radius-sm);
+    color: var(--success);
+    font-size: .82rem;
+    font-weight: 600;
+    font-family: var(--font-head);
+    align-items: center;
+    gap: 7px;
+  }
+  .tag-suggestions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .tag-chip {
+    background: var(--surface-2);
+    color: var(--ink-2);
+    border: 1px solid var(--border);
+    padding: .18rem .6rem;
+    border-radius: 20px;
+    font-size: .72rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background var(--t), color var(--t), border-color var(--t);
+  }
+  .tag-chip:hover { background: var(--surface); color: var(--ink); border-color: var(--ink-2); }
+  .ai-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: .5rem .9rem;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--surface-2);
+    color: var(--ink-2);
+    font-size: .8rem;
+    font-weight: 700;
+    font-family: var(--font-head);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background var(--t), border-color var(--t), color var(--t);
+    flex-shrink: 0;
+  }
+  .ai-btn:hover { background: var(--surface); border-color: var(--ink-2); color: var(--ink); }
+  .ai-status { font-size: .74rem; margin-top: 5px; display: none; }
+  .perm-row {
+    display: flex;
+    align-items: flex-start;
+    gap: .6rem;
+    padding: .7rem 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .perm-row:last-child { border-bottom: none; }
+  .perm-row input[type="checkbox"] { margin-top: 2px; width: 15px; height: 15px; flex-shrink: 0; }
+  .perm-row-text { font-size: .84rem; color: var(--ink-2); }
+  .perm-row-text small { display: block; font-size: .74rem; color: var(--muted); margin-top: 2px; }
+
+  /* Storage usage bar */
+  .storage-bar-wrap {
+    margin-bottom: 1.4rem;
+    padding: .85rem 1rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+  }
+  .storage-bar-label {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-size: .78rem;
+    color: var(--muted);
+    margin-bottom: .45rem;
+    font-family: var(--font-head);
+    font-weight: 600;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+  }
+  .storage-bar-label .storage-values { color: var(--ink-2); font-size: .82rem; }
+  .storage-bar-track {
+    height: 6px;
+    background: var(--border);
+    border-radius: 99px;
+    overflow: hidden;
+  }
+  .storage-bar-fill {
+    height: 100%;
+    border-radius: 99px;
+    background: var(--ink);
+    transition: width .4s ease;
+  }
+  .storage-bar-fill.warn  { background: #d97706; }
+  .storage-bar-fill.danger{ background: var(--danger); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="page-header-text">
+    <h1 class="page-title">
+      <span class="lang-text" data-lang="en">Upload Document</span>
+      <span class="lang-text" data-lang="fr" style="display:none">Télécharger un document</span>
+      <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">رفع مستند</span>
+    </h1>
+    <p class="page-subtitle">
+      <span class="lang-text" data-lang="en">Add a new document to your organization</span>
+      <span class="lang-text" data-lang="fr" style="display:none">Ajouter un nouveau document à votre organisation</span>
+      <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">أضف مستنداً جديداً إلى منظمتك</span>
+    </p>
+  </div>
+</div>
+
+<div class="upload-wrap">
+  {% if storage_used_mb is not None %}
+  <div class="storage-bar-wrap">
+    <div class="storage-bar-label">
+      <span>Storage</span>
+      {% if storage_limit_mb %}
+        <span class="storage-values">{{ storage_used_mb|floatformat:1 }} MB of {{ storage_limit_mb|floatformat:0 }} MB used ({{ storage_percent|floatformat:0 }}%)</span>
+      {% else %}
+        <span class="storage-values">{{ storage_used_mb|floatformat:1 }} MB used</span>
+      {% endif %}
+    </div>
+    {% if storage_limit_mb %}
+    <div class="storage-bar-track">
+      <div class="storage-bar-fill{% if storage_percent >= 90 %} danger{% elif storage_percent >= 70 %} warn{% endif %}"
+           style="width:{{ storage_percent|floatformat:0 }}%"></div>
+    </div>
+    {% endif %}
+  </div>
+  {% endif %}
+  {% if error %}
+  <div class="alert alert-error" style="margin-bottom:1.2rem;">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    {{ error }}
+  </div>
+  {% endif %}
+
+  <div class="card" style="padding:0;overflow:hidden;">
+    <div class="card-header">
+      <h3>
+        <span class="lang-text" data-lang="en">Document Details</span>
+        <span class="lang-text" data-lang="fr" style="display:none">Détails du document</span>
+        <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">تفاصيل المستند</span>
+      </h3>
+    </div>
+    <div class="card-body">
+      <form method="post" enctype="multipart/form-data" id="uploadForm">
+        {% csrf_token %}
+
+        <div class="form-group">
+          <label>
+            <span class="lang-text" data-lang="en">Document Title</span>
+            <span class="lang-text" data-lang="fr" style="display:none">Titre du document</span>
+            <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">عنوان المستند</span>
+          </label>
+          <div style="display:flex;gap:8px;align-items:flex-start;">
+            <input type="text" id="title" name="title" placeholder="Enter title or use AI to suggest one" style="flex:1;">
+            <button type="button" class="ai-btn" id="aiSuggestBtn">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+              <span class="lang-text" data-lang="en">AI Suggest</span>
+              <span class="lang-text" data-lang="fr" style="display:none">Suggestion IA</span>
+              <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">اقتراح ذكي</span>
+            </button>
+          </div>
+          <div class="ai-status" id="aiSuggestStatus"></div>
+        </div>
+
+        <div class="form-group">
+          <label>
+            <span class="lang-text" data-lang="en">File</span>
+            <span class="lang-text" data-lang="fr" style="display:none">Fichier</span>
+            <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">الملف</span>
+            &nbsp;<span style="color:var(--danger);">*</span>
+          </label>
+          <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click();">
+            <div class="drop-zone-icon">
+              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            </div>
+            <div class="drop-zone-text">
+              <span class="lang-text" data-lang="en"><strong>Click to upload</strong> or drag and drop</span>
+              <span class="lang-text" data-lang="fr" style="display:none"><strong>Cliquez pour télécharger</strong> ou glissez-déposez</span>
+              <span class="lang-text" data-lang="ar" style="display:none" dir="rtl"><strong>انقر للرفع</strong> أو اسحب وأفلت</span>
+              <br>
+              <span style="font-size:.76rem;">PDF, DOC, DOCX, XLS, XLSX, TXT, Images (Max 500 MB)</span>
+            </div>
+          </div>
+          <div class="file-selected" id="fileSelected">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            <span id="fileName"></span>
+          </div>
+          <input type="file" id="fileInput" name="file" style="display:none;" required>
+        </div>
+
+        <div class="form-grid form-grid-2">
+          <div class="form-group">
+            <label>
+              <span class="lang-text" data-lang="en">Folder (Optional)</span>
+              <span class="lang-text" data-lang="fr" style="display:none">Dossier (Optionnel)</span>
+              <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">المجلد (اختياري)</span>
+            </label>
+            <select name="folder_id">
+              <option value=""><span class="lang-text" data-lang="en">Root</span></option>
+              {% for folder in folders %}
+              <option value="{{ folder.id }}">{{ folder.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="form-group">
+            <label>
+              <span class="lang-text" data-lang="en">Vault (Optional)</span>
+              <span class="lang-text" data-lang="fr" style="display:none">Coffre (Optionnel)</span>
+              <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">الخزنة (اختيارية)</span>
+            </label>
+            <select name="vault_id">
+              <option value="">
+                <span class="lang-text" data-lang="en">No vault</span>
+              </option>
+              {% for vault in vaults %}
+              <option value="{{ vault.id }}">{{ vault.name }}</option>
+              {% endfor %}
+            </select>
+            <div class="form-help">
+              <span class="lang-text" data-lang="en">Documents in vaults require PIN access</span>
+              <span class="lang-text" data-lang="fr" style="display:none">Les documents dans les coffres nécessitent un code PIN</span>
+              <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">المستندات في الخزائن تتطلب رمز PIN</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>
+            <span class="lang-text" data-lang="en">Access Tags (Optional)</span>
+            <span class="lang-text" data-lang="fr" style="display:none">Tags d'accès (Optionnel)</span>
+            <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">علامات الوصول (اختيارية)</span>
+          </label>
+          <input type="text" id="access_tags" name="access_tags" placeholder="hr, finance, confidential">
+          <div class="form-help">
+            <span class="lang-text" data-lang="en">Comma-separated tags to control document access</span>
+            <span class="lang-text" data-lang="fr" style="display:none">Tags séparés par des virgules pour contrôler l'accès</span>
+            <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">علامات مفصولة بفواصل للتحكم في الوصول</span>
+          </div>
+          {% if available_tags %}
+          <div class="tag-suggestions">
+            {% for tag in available_tags %}
+            <span class="tag-chip" onclick="addTag('{{ tag }}')">{{ tag }}</span>
+            {% endfor %}
+          </div>
+          {% endif %}
+        </div>
+
+        <div class="form-group">
+          <label style="margin-bottom:10px;display:block;">
+            <span class="lang-text" data-lang="en">Document Permissions</span>
+            <span class="lang-text" data-lang="fr" style="display:none">Permissions du document</span>
+            <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">صلاحيات المستند</span>
+          </label>
+          <div style="background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-md);padding:4px 14px;">
+            <div class="perm-row">
+              <input type="checkbox" name="can_be_printed" value="1" checked>
+              <div class="perm-row-text">
+                <span class="lang-text" data-lang="en">Allow others to print this document</span>
+                <span class="lang-text" data-lang="fr" style="display:none">Autoriser d'autres à imprimer ce document</span>
+                <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">السماح للآخرين بطباعة هذا المستند</span>
+              </div>
+            </div>
+            <div class="perm-row">
+              <input type="checkbox" name="can_be_moved" value="1" checked>
+              <div class="perm-row-text">
+                <span class="lang-text" data-lang="en">Allow others to move this document</span>
+                <span class="lang-text" data-lang="fr" style="display:none">Autoriser d'autres à déplacer ce document</span>
+                <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">السماح للآخرين بنقل هذا المستند</span>
+              </div>
+            </div>
+            <div class="perm-row">
+              <input type="checkbox" name="can_be_deleted" value="1" checked>
+              <div class="perm-row-text">
+                <span class="lang-text" data-lang="en">Allow others to delete this document</span>
+                <span class="lang-text" data-lang="fr" style="display:none">Autoriser d'autres à supprimer ce document</span>
+                <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">السماح للآخرين بحذف هذا المستند</span>
+              </div>
+            </div>
+          </div>
+          <div class="form-help" style="margin-top:8px;">
+            <span class="lang-text" data-lang="en">These settings apply to other editors and owners. You can change them later in Privacy Settings.</span>
+            <span class="lang-text" data-lang="fr" style="display:none">Ces paramètres s'appliquent aux autres éditeurs et propriétaires.</span>
+            <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">تنطبق هذه الإعدادات على المحررين والمالكين الآخرين.</span>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            <span class="lang-text" data-lang="en">Upload Document</span>
+            <span class="lang-text" data-lang="fr" style="display:none">Télécharger</span>
+            <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">رفع المستند</span>
+          </button>
+          <a href="{% url 'docs:home' %}" class="btn btn-secondary">
+            <span class="lang-text" data-lang="en">Cancel</span><span class="lang-text" data-lang="fr" style="display:none">Annuler</span><span class="lang-text" data-lang="ar" style="display:none" dir="rtl">إلغاء</span>
+          </a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+const dropZone    = document.getElementById('dropZone');
+const fileInput   = document.getElementById('fileInput');
+const fileSelected= document.getElementById('fileSelected');
+const fileName    = document.getElementById('fileName');
+const aiBtn       = document.getElementById('aiSuggestBtn');
+const aiStatus    = document.getElementById('aiSuggestStatus');
+
+fileInput.addEventListener('change', function() {
+  if (this.files.length) showFile(this.files[0].name);
+});
+
+['dragover','dragenter'].forEach(e => dropZone.addEventListener(e, ev => {
+  ev.preventDefault(); dropZone.classList.add('dragover');
+}));
+['dragleave','drop'].forEach(e => dropZone.addEventListener(e, ev => {
+  dropZone.classList.remove('dragover');
+  if (e === 'drop') {
+    ev.preventDefault();
+    if (ev.dataTransfer.files.length) { fileInput.files = ev.dataTransfer.files; showFile(ev.dataTransfer.files[0].name); }
+  }
+}));
+
+function showFile(name) {
+  fileName.textContent = name;
+  fileSelected.style.display = 'flex';
+}
+
+aiBtn.addEventListener('click', function() {
+  const file = fileInput.files[0];
+  if (!file) { setStatus('Please select a file first.', 'var(--warning)'); return; }
+  aiBtn.disabled = true;
+  setStatus('Analyzing file content...', 'var(--muted)');
+  const fd = new FormData();
+  fd.append('file', file);
+  fd.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+  fetch("{% url 'docs:ai_suggest_title' %}", { method: 'POST', body: fd })
+    .then(r => r.json())
+    .then(data => {
+      if (data.error) { setStatus(data.error, 'var(--danger)'); }
+      else {
+        document.getElementById('title').value = data.suggested_title || '';
+        if (data.suggested_tags) {
+          const t = document.getElementById('access_tags');
+          if (!t.value.trim()) t.value = data.suggested_tags;
+        }
+        setStatus('Title suggested successfully.', 'var(--success)');
+      }
+    })
+    .catch(() => setStatus('Request failed. Check your connection.', 'var(--danger)'))
+    .finally(() => { aiBtn.disabled = false; });
+});
+
+function setStatus(msg, color) {
+  aiStatus.textContent = msg;
+  aiStatus.style.color = color;
+  aiStatus.style.display = 'block';
+}
+
+function addTag(tag) {
+  const input = document.getElementById('access_tags');
+  const tags = input.value.split(',').map(t => t.trim()).filter(t => t);
+  if (!tags.includes(tag)) { tags.push(tag); input.value = tags.join(', '); }
+}
+</script>
+{% endblock %}

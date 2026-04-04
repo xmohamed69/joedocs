@@ -1,0 +1,533 @@
+{% extends "app_base.html" %}
+{% load static %}
+{% block title %}{{ document.title }} — JoeLinkAI{% endblock %}
+{% block page_title %}{{ document.title|truncatechars:40 }}{% endblock %}
+
+{% block extra_head %}
+<style>
+  .doc-layout { display: grid; grid-template-columns: 1fr 260px; gap: 18px; align-items: start; }
+  @media (max-width: 900px) { .doc-layout { grid-template-columns: 1fr; } }
+
+  .doc-main { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; }
+  .doc-header { padding: 20px 24px; border-bottom: 1px solid var(--border); background: var(--surface-2); }
+  .doc-title { font-family: var(--font-head); font-size: 1.15rem; font-weight: 800; color: var(--ink); margin: 0 0 10px; letter-spacing: -.02em; }
+  .doc-meta { display: flex; flex-wrap: wrap; gap: 14px; font-size: .78rem; color: var(--muted); }
+  .doc-meta-item { display: flex; align-items: center; gap: 5px; }
+  .doc-meta-label { font-weight: 600; color: var(--muted); }
+
+  .doc-tabs { display: flex; border-bottom: 1px solid var(--border); background: var(--surface); }
+  .doc-tab {
+    padding: 10px 16px;
+    font-size: .82rem;
+    font-weight: 600;
+    font-family: var(--font-head);
+    color: var(--muted);
+    cursor: pointer;
+    border: none;
+    background: transparent;
+    border-bottom: 2px solid transparent;
+    transition: color var(--t), border-color var(--t);
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .doc-tab:hover { color: var(--ink); }
+  .doc-tab.active { color: var(--ink); border-bottom-color: var(--ink); }
+  .doc-tab-panel { display: none; }
+  .doc-tab-panel.active { display: block; }
+
+  .doc-preview-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    background: var(--surface-2);
+    border-bottom: 1px solid var(--border);
+    font-size: .76rem;
+    color: var(--muted);
+  }
+  .preview-empty { text-align: center; padding: 56px 24px; color: var(--muted); }
+  .preview-empty svg { color: var(--muted); margin-bottom: 14px; }
+  .preview-empty h3 { font-family: var(--font-head); font-size: 1rem; font-weight: 700; color: var(--ink-2); margin-bottom: 6px; }
+  .preview-empty p { font-size: .82rem; }
+
+  .summary-panel { padding: 24px; background: var(--surface); min-height: 280px; }
+  .summary-label { font-size: .66rem; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); margin-bottom: 14px; display: flex; align-items: center; gap: 7px; }
+  .summary-body { font-size: .88rem; line-height: 1.8; color: var(--ink-2); }
+  .summary-loading { color: var(--muted); font-style: italic; font-size: .84rem; }
+
+  .doc-sidebar { display: flex; flex-direction: column; gap: 12px; }
+  .sb-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; }
+  .sb-header { padding: 9px 14px; background: var(--surface-2); border-bottom: 1px solid var(--border); font-size: .64rem; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); font-family: var(--font-head); }
+  .sb-body { padding: 8px; }
+
+  .action-list { display: flex; flex-direction: column; gap: 1px; }
+  .action-item {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 8px 10px;
+    font-size: .82rem;
+    color: var(--ink-2);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    border: none;
+    background: transparent;
+    width: 100%;
+    text-align: left;
+    text-decoration: none;
+    font-family: var(--font-body);
+    transition: background var(--t), color var(--t);
+  }
+  .action-item:hover { background: var(--surface-2); text-decoration: none; color: var(--ink); }
+  .action-item.action-primary { background: var(--ink); color: #fff; font-weight: 600; font-family: var(--font-head); border-radius: var(--radius-sm); margin-bottom: 2px; }
+  .action-item.action-primary:hover { background: var(--ink-2); color: #fff; }
+  .action-item.action-danger { color: var(--danger); }
+  .action-item.action-danger:hover { background: var(--danger-bg); color: var(--danger); }
+  .action-item svg { flex-shrink: 0; color: inherit; }
+
+  .version-list { max-height: 260px; overflow-y: auto; }
+  .version-item { display: flex; justify-content: space-between; align-items: center; padding: 9px 0; border-bottom: 1px solid var(--border); font-size: .8rem; }
+  .version-item:last-child { border-bottom: none; }
+  .version-num { font-weight: 600; color: var(--ink); }
+  .version-meta { font-size: .72rem; color: var(--muted); margin-top: 2px; }
+
+  .tag-cloud { display: flex; flex-wrap: wrap; gap: 6px; }
+  .tag-chip { background: var(--surface-2); color: var(--ink-2); border: 1px solid var(--border); padding: .18rem .55rem; border-radius: 20px; font-size: .68rem; font-weight: 600; font-family: var(--font-head); }
+
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 1000; justify-content: center; align-items: center; }
+  .modal-box { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 24px; max-width: 480px; width: 92%; max-height: 88vh; overflow-y: auto; box-shadow: var(--shadow-lg); animation: modalIn .2s ease; }
+  @keyframes modalIn { from { opacity:0; transform:scale(.96) translateY(-8px); } to { opacity:1; transform:scale(1) translateY(0); } }
+  .modal-box h3 { font-family: var(--font-head); font-weight: 800; font-size: 1rem; color: var(--ink); margin: 0 0 18px; }
+  .modal-actions { display: flex; gap: 10px; margin-top: 18px; justify-content: flex-end; }
+
+  pre { margin: 0; padding: 20px 24px; font-size: .78rem; line-height: 1.7; color: var(--ink-2); overflow-x: auto; white-space: pre-wrap; word-break: break-word; background: var(--surface); max-height: 560px; overflow-y: auto; font-family: 'Courier New', monospace; }
+  @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+</style>
+{% endblock %}
+
+{% block content %}
+<div style="margin-bottom:14px;">
+  <a href="{% url 'docs:home' %}" class="btn btn-ghost btn-sm" style="padding:.35rem .7rem;">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+    <span class="lang-text" data-lang="en">Back to Files</span>
+    <span class="lang-text" data-lang="fr" style="display:none">Retour aux fichiers</span>
+    <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">العودة إلى الملفات</span>
+  </a>
+</div>
+
+<div class="doc-layout">
+  <div class="doc-main">
+    <div class="doc-header">
+      <h1 class="doc-title">{{ document.title }}</h1>
+      <div class="doc-meta">
+        <div class="doc-meta-item">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          <span class="doc-meta-label lang-text" data-lang="en">Owner:</span>
+          <span class="doc-meta-label lang-text" data-lang="fr" style="display:none">Propriétaire:</span>
+          <span class="doc-meta-label lang-text" data-lang="ar" style="display:none" dir="rtl">المالك:</span>
+          {{ document.owner.first_name }} {{ document.owner.last_name }}
+        </div>
+        <div class="doc-meta-item">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          <span class="doc-meta-label lang-text" data-lang="en">Created:</span>
+          <span class="doc-meta-label lang-text" data-lang="fr" style="display:none">Créé:</span>
+          <span class="doc-meta-label lang-text" data-lang="ar" style="display:none" dir="rtl">تاريخ الإنشاء:</span>
+          {{ document.created_at|date:"M d, Y" }}
+        </div>
+        {% if document.folder %}
+        <div class="doc-meta-item">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+          <span class="doc-meta-label lang-text" data-lang="en">Folder:</span>
+          <span class="doc-meta-label lang-text" data-lang="fr" style="display:none">Dossier:</span>
+          <span class="doc-meta-label lang-text" data-lang="ar" style="display:none" dir="rtl">المجلد:</span>
+          {{ document.folder.name }}
+        </div>
+        {% endif %}
+        {% if document.vault %}
+        <div class="doc-meta-item">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          <span class="doc-meta-label lang-text" data-lang="en">Vault:</span>
+          <span class="doc-meta-label lang-text" data-lang="fr" style="display:none">Coffre:</span>
+          <span class="doc-meta-label lang-text" data-lang="ar" style="display:none" dir="rtl">الخزنة:</span>
+          {{ document.vault.name }}
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="doc-tabs">
+      <button class="doc-tab active" onclick="switchTab('preview', this)">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        <span class="lang-text" data-lang="en">Document</span><span class="lang-text" data-lang="fr" style="display:none">Document</span><span class="lang-text" data-lang="ar" style="display:none" dir="rtl">المستند</span>
+      </button>
+      <button class="doc-tab" onclick="switchTab('summary', this)" id="summaryTabBtn">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        <span class="lang-text" data-lang="en">AI Summary</span><span class="lang-text" data-lang="fr" style="display:none">Résumé IA</span><span class="lang-text" data-lang="ar" style="display:none" dir="rtl">ملخص ذكي</span>
+      </button>
+    </div>
+
+    <div class="doc-tab-panel active" id="tab-preview">
+      {% if latest_version %}
+        {% if preview_type == "pdf" %}
+          <iframe src="{{ latest_version.file.url }}#toolbar=0&navpanes=0" width="100%" height="620px" style="border:none;display:block;"></iframe>
+          <div class="doc-preview-bar">
+            <span>PDF — Version {{ latest_version.version }} · {{ latest_version.file_size|filesizeformat }}</span>
+            <a href="{{ latest_version.file.url }}" class="btn btn-primary btn-sm" download>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              <span class="lang-text" data-lang="en">Download</span><span class="lang-text" data-lang="fr" style="display:none">Télécharger</span><span class="lang-text" data-lang="ar" style="display:none" dir="rtl">تنزيل</span>
+            </a>
+          </div>
+        {% elif preview_type == "image" %}
+          <div style="padding:20px;text-align:center;background:var(--surface-2);">
+            <img src="{{ latest_version.file.url }}" alt="{{ document.title }}" style="max-width:100%;max-height:580px;border:1px solid var(--border);border-radius:var(--radius-sm);">
+            <div style="margin-top:14px;">
+              <a href="{{ latest_version.file.url }}" class="btn btn-primary btn-sm" download>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                <span class="lang-text" data-lang="en">Download</span><span class="lang-text" data-lang="fr" style="display:none">Télécharger</span><span class="lang-text" data-lang="ar" style="display:none" dir="rtl">تنزيل</span>
+              </a>
+            </div>
+          </div>
+        {% elif preview_type == "text" %}
+          <div class="doc-preview-bar">
+            <span class="lang-text" data-lang="en">Text preview — first 3,000 characters</span>
+            <span class="lang-text" data-lang="fr" style="display:none">Aperçu texte — 3 000 premiers caractères</span>
+            <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">معاينة نصية — أول 3000 حرف</span>
+            <a href="{{ latest_version.file.url }}" class="btn btn-secondary btn-sm" download>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              <span class="lang-text" data-lang="en">Download</span><span class="lang-text" data-lang="fr" style="display:none">Télécharger</span><span class="lang-text" data-lang="ar" style="display:none" dir="rtl">تنزيل</span>
+            </a>
+          </div>
+          <pre>{{ preview_text|default:"(empty file)" }}</pre>
+        {% elif preview_type == "office" or preview_type == "docx" %}
+          {% if preview_error %}
+            <div class="preview-empty">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+              <h3 class="lang-text" data-lang="en">Preview not available</h3>
+              <h3 class="lang-text" data-lang="fr" style="display:none">Aperçu non disponible</h3>
+              <h3 class="lang-text" data-lang="ar" style="display:none" dir="rtl">المعاينة غير متاحة</h3>
+              <p class="lang-text" data-lang="en">LibreOffice could not convert this file. It may be password-protected or corrupted. Please download it to view.</p>
+              <p class="lang-text" data-lang="fr" style="display:none">LibreOffice n'a pas pu convertir ce fichier. Veuillez le télécharger.</p>
+              <p class="lang-text" data-lang="ar" style="display:none" dir="rtl">تعذّر تحويل الملف. يرجى تنزيله لعرضه.</p>
+              <div style="margin-top:16px;">
+                <a href="{{ latest_version.file.url }}" class="btn btn-primary btn-sm" download>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                  <span class="lang-text" data-lang="en">Download File</span><span class="lang-text" data-lang="fr" style="display:none">Télécharger le fichier</span><span class="lang-text" data-lang="ar" style="display:none" dir="rtl">تنزيل الملف</span>
+                </a>
+              </div>
+            </div>
+          {% else %}
+            <div id="previewSpinner" style="display:flex;align-items:center;justify-content:center;gap:10px;padding:48px 24px;color:var(--muted);font-size:.84rem;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="animation:spin 1s linear infinite;"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+              <span class="lang-text" data-lang="en">Generating preview…</span>
+              <span class="lang-text" data-lang="fr" style="display:none">Génération de l'aperçu…</span>
+              <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">جار إنشاء المعاينة…</span>
+            </div>
+            <iframe
+              id="officePreviewFrame"
+              src="{% url 'docs:document_render_preview' version_id=latest_version.id %}"
+              width="100%"
+              height="640px"
+              style="border:none;display:none;background:var(--surface);"
+              onload="document.getElementById('previewSpinner').style.display='none';this.style.display='block';"
+            ></iframe>
+            <div class="doc-preview-bar">
+              <span>Version {{ latest_version.version }} · {{ latest_version.file_size|filesizeformat }}</span>
+              <div style="display:flex;gap:8px;align-items:center;">
+                <button onclick="togglePreviewFullscreen()" class="btn btn-ghost btn-sm" title="Fullscreen">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+                  <span class="lang-text" data-lang="en">Fullscreen</span><span class="lang-text" data-lang="fr" style="display:none">Plein écran</span><span class="lang-text" data-lang="ar" style="display:none" dir="rtl">ملء الشاشة</span>
+                </button>
+                <a href="{{ latest_version.file.url }}" class="btn btn-secondary btn-sm" download>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                  <span class="lang-text" data-lang="en">Download</span><span class="lang-text" data-lang="fr" style="display:none">Télécharger</span><span class="lang-text" data-lang="ar" style="display:none" dir="rtl">تنزيل</span>
+                </a>
+              </div>
+            </div>
+          {% endif %}
+        {% else %}
+          <div class="preview-empty">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            <h3>{{ document.title }}</h3>
+            <p class="lang-text" data-lang="en">Version {{ latest_version.version }} · {{ latest_version.file_size|filesizeformat }}<br>Preview not available for this file type.</p>
+            <p class="lang-text" data-lang="fr" style="display:none">Version {{ latest_version.version }} · {{ latest_version.file_size|filesizeformat }}<br>Aperçu non disponible pour ce type de fichier.</p>
+            <p class="lang-text" data-lang="ar" style="display:none" dir="rtl">الإصدار {{ latest_version.version }} · {{ latest_version.file_size|filesizeformat }}<br>المعاينة غير متاحة.</p>
+            <div style="margin-top:16px;"><a href="{{ latest_version.file.url }}" class="btn btn-primary btn-sm" download><span class="lang-text" data-lang="en">Download Latest Version</span><span class="lang-text" data-lang="fr" style="display:none">Télécharger la dernière version</span><span class="lang-text" data-lang="ar" style="display:none" dir="rtl">تنزيل أحدث إصدار</span></a></div>
+          </div>
+        {% endif %}
+      {% else %}
+        <div class="preview-empty">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg>
+          <h3 class="lang-text" data-lang="en">No versions available</h3>
+          <h3 class="lang-text" data-lang="fr" style="display:none">Aucune version disponible</h3>
+          <h3 class="lang-text" data-lang="ar" style="display:none" dir="rtl">لا توجد إصدارات</h3>
+          <p class="lang-text" data-lang="en">Upload a version to get started</p>
+          <p class="lang-text" data-lang="fr" style="display:none">Téléchargez une version pour commencer</p>
+          <p class="lang-text" data-lang="ar" style="display:none" dir="rtl">ارفع إصداراً للبدء</p>
+        </div>
+      {% endif %}
+    </div>
+
+    <div class="doc-tab-panel summary-panel" id="tab-summary">
+      <div class="summary-label">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        <span class="lang-text" data-lang="en">AI Executive Summary</span>
+        <span class="lang-text" data-lang="fr" style="display:none">Résumé exécutif IA</span>
+        <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">ملخص تنفيذي بالذكاء الاصطناعي</span>
+      </div>
+      <div class="summary-body">
+        <span class="summary-loading" id="summaryLoading" style="display:none;">
+          <span class="lang-text" data-lang="en">Generating summary...</span>
+          <span class="lang-text" data-lang="fr" style="display:none">Génération du résumé...</span>
+          <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">جار إنشاء الملخص...</span>
+        </span>
+        <span id="summaryText" style="display:none;"></span>
+        <span id="summaryError" style="display:none;color:var(--danger);font-size:.82rem;"></span>
+        {% if not ai_enabled %}
+        <span style="color:var(--muted);font-size:.84rem;font-style:italic;">
+          <span class="lang-text" data-lang="en">AI features are not enabled for your account. Contact your administrator.</span>
+          <span class="lang-text" data-lang="fr" style="display:none">Les fonctionnalités IA ne sont pas activées pour votre compte.</span>
+          <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">ميزات الذكاء الاصطناعي غير مفعلة لحسابك. تواصل مع المشرف.</span>
+        </span>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="doc-sidebar">
+    {% if can_edit %}
+    <div class="sb-card">
+      <div class="sb-header"><span class="lang-text" data-lang="en">Actions</span><span class="lang-text" data-lang="fr" style="display:none">Actions</span><span class="lang-text" data-lang="ar" style="display:none" dir="rtl">الإجراءات</span></div>
+      <div class="sb-body">
+        <div class="action-list">
+          {% if latest_version %}
+          <a href="{{ latest_version.file.url }}" class="action-item action-primary" download>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            <span class="lang-text" data-lang="en">Download</span><span class="lang-text" data-lang="fr" style="display:none">Télécharger</span><span class="lang-text" data-lang="ar" style="display:none" dir="rtl">تنزيل</span>
+          </a>
+          {% endif %}
+          {% if user_can_print %}
+          <button class="action-item" onclick="window.print()">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+            <span class="lang-text" data-lang="en">Print</span><span class="lang-text" data-lang="fr" style="display:none">Imprimer</span><span class="lang-text" data-lang="ar" style="display:none" dir="rtl">طباعة</span>
+          </button>
+          {% endif %}
+          <a href="{% url 'docs:document_upload_version' docid=document.id %}" class="action-item">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            <span class="lang-text" data-lang="en">Upload New Version</span><span class="lang-text" data-lang="fr" style="display:none">Nouvelle version</span><span class="lang-text" data-lang="ar" style="display:none" dir="rtl">رفع إصدار جديد</span>
+          </a>
+          <button class="action-item" onclick="openModal('renameModal')">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            <span class="lang-text" data-lang="en">Rename</span><span class="lang-text" data-lang="fr" style="display:none">Renommer</span><span class="lang-text" data-lang="ar" style="display:none" dir="rtl">إعادة تسمية</span>
+          </button>
+          {% if user_can_move %}
+          <button class="action-item" onclick="openModal('moveModal')">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="5 9 2 12 5 15"/><polyline points="19 9 22 12 19 15"/><line x1="2" y1="12" x2="22" y2="12"/></svg>
+            <span class="lang-text" data-lang="en">Move</span><span class="lang-text" data-lang="fr" style="display:none">Déplacer</span><span class="lang-text" data-lang="ar" style="display:none" dir="rtl">نقل</span>
+          </button>
+          {% endif %}
+          <form action="{% url 'docs:document_copy' docid=document.id %}" method="post" style="margin:0;">
+            {% csrf_token %}
+            <button type="submit" class="action-item" style="width:100%;">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              <span class="lang-text" data-lang="en">Make a Copy</span><span class="lang-text" data-lang="fr" style="display:none">Faire une copie</span><span class="lang-text" data-lang="ar" style="display:none" dir="rtl">نسخ</span>
+            </button>
+          </form>
+          <button class="action-item" onclick="openModal('privacyModal')">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            <span class="lang-text" data-lang="en">Privacy Settings</span><span class="lang-text" data-lang="fr" style="display:none">Paramètres de confidentialité</span><span class="lang-text" data-lang="ar" style="display:none" dir="rtl">إعدادات الخصوصية</span>
+          </button>
+          {% if user_can_delete %}
+          <button class="action-item action-danger" onclick="openModal('deleteModal')">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+            <span class="lang-text" data-lang="en">Delete</span><span class="lang-text" data-lang="fr" style="display:none">Supprimer</span><span class="lang-text" data-lang="ar" style="display:none" dir="rtl">حذف</span>
+          </button>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    <div class="sb-card">
+      <div class="sb-header"><span class="lang-text" data-lang="en">Version History</span><span class="lang-text" data-lang="fr" style="display:none">Historique des versions</span><span class="lang-text" data-lang="ar" style="display:none" dir="rtl">سجل الإصدارات</span></div>
+      <div class="sb-body">
+        <div class="version-list">
+          {% for version in versions %}
+          <div class="version-item">
+            <div>
+              <div class="version-num"><span class="lang-text" data-lang="en">Version {{ version.version }}</span><span class="lang-text" data-lang="fr" style="display:none">Version {{ version.version }}</span><span class="lang-text" data-lang="ar" style="display:none" dir="rtl">الإصدار {{ version.version }}</span></div>
+              <div class="version-meta">{{ version.created_at|date:"M d, Y H:i" }} · {{ version.file_size|filesizeformat }}</div>
+            </div>
+            <a href="{{ version.file.url }}" class="btn btn-secondary btn-sm" download>
+              <span class="lang-text" data-lang="en">DL</span><span class="lang-text" data-lang="fr" style="display:none">DL</span><span class="lang-text" data-lang="ar" style="display:none" dir="rtl">تنزيل</span>
+            </a>
+          </div>
+          {% empty %}
+          <p style="font-size:.8rem;color:var(--muted);padding:.5rem 0;"><span class="lang-text" data-lang="en">No versions yet</span><span class="lang-text" data-lang="fr" style="display:none">Aucune version</span><span class="lang-text" data-lang="ar" style="display:none" dir="rtl">لا توجد إصدارات</span></p>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    {% if document.access_tags %}
+    <div class="sb-card">
+      <div class="sb-header"><span class="lang-text" data-lang="en">Access Tags</span><span class="lang-text" data-lang="fr" style="display:none">Tags d'accès</span><span class="lang-text" data-lang="ar" style="display:none" dir="rtl">علامات الوصول</span></div>
+      <div class="sb-body">
+        <div class="tag-cloud">
+          {% for tag in document.get_tags_list %}<span class="tag-chip">{{ tag }}</span>{% endfor %}
+        </div>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Rename Modal -->
+<div class="modal-overlay" id="renameModal">
+  <div class="modal-box">
+    <h3><span class="lang-text" data-lang="en">Rename Document</span><span class="lang-text" data-lang="fr" style="display:none">Renommer le document</span><span class="lang-text" data-lang="ar" style="display:none" dir="rtl">إعادة تسمية المستند</span></h3>
+    <form action="{% url 'docs:document_rename' docid=document.id %}" method="post">
+      {% csrf_token %}
+      <div class="form-group">
+        <label><span class="lang-text" data-lang="en">New Title</span><span class="lang-text" data-lang="fr" style="display:none">Nouveau titre</span><span class="lang-text" data-lang="ar" style="display:none" dir="rtl">العنوان الجديد</span></label>
+        <input type="text" name="title" value="{{ document.title }}" required>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-secondary btn-sm" onclick="closeModal('renameModal')"><span class="lang-text" data-lang="en">Cancel</span><span class="lang-text" data-lang="fr" style="display:none">Annuler</span><span class="lang-text" data-lang="ar" style="display:none" dir="rtl">إلغاء</span></button>
+        <button type="submit" class="btn btn-primary btn-sm"><span class="lang-text" data-lang="en">Save</span><span class="lang-text" data-lang="fr" style="display:none">Enregistrer</span><span class="lang-text" data-lang="ar" style="display:none" dir="rtl">حفظ</span></button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Move Modal -->
+<div class="modal-overlay" id="moveModal">
+  <div class="modal-box">
+    <h3><span class="lang-text" data-lang="en">Move Document</span><span class="lang-text" data-lang="fr" style="display:none">Déplacer le document</span><span class="lang-text" data-lang="ar" style="display:none" dir="rtl">نقل المستند</span></h3>
+    <form action="{% url 'docs:document_move' docid=document.id %}" method="post">
+      {% csrf_token %}
+      <div class="form-group">
+        <label><span class="lang-text" data-lang="en">Folder</span><span class="lang-text" data-lang="fr" style="display:none">Dossier</span><span class="lang-text" data-lang="ar" style="display:none" dir="rtl">المجلد</span></label>
+        <select name="folder_id">
+          <option value=""><span class="lang-text" data-lang="en">Root (No folder)</span></option>
+          {% for folder in all_folders %}<option value="{{ folder.id }}" {% if document.folder and document.folder.id == folder.id %}selected{% endif %}>{{ folder.name }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="form-group">
+        <label><span class="lang-text" data-lang="en">Vault</span><span class="lang-text" data-lang="fr" style="display:none">Coffre</span><span class="lang-text" data-lang="ar" style="display:none" dir="rtl">الخزنة</span></label>
+        <select name="vault_id">
+          <option value=""><span class="lang-text" data-lang="en">No vault</span></option>
+          {% for vault in all_vaults %}<option value="{{ vault.id }}" {% if document.vault and document.vault.id == vault.id %}selected{% endif %}>{{ vault.name }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-secondary btn-sm" onclick="closeModal('moveModal')"><span class="lang-text" data-lang="en">Cancel</span><span class="lang-text" data-lang="fr" style="display:none">Annuler</span><span class="lang-text" data-lang="ar" style="display:none" dir="rtl">إلغاء</span></button>
+        <button type="submit" class="btn btn-primary btn-sm"><span class="lang-text" data-lang="en">Move</span><span class="lang-text" data-lang="fr" style="display:none">Déplacer</span><span class="lang-text" data-lang="ar" style="display:none" dir="rtl">نقل</span></button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Privacy Modal -->
+<div class="modal-overlay" id="privacyModal">
+  <div class="modal-box">
+    <h3><span class="lang-text" data-lang="en">Privacy Settings</span><span class="lang-text" data-lang="fr" style="display:none">Paramètres de confidentialité</span><span class="lang-text" data-lang="ar" style="display:none" dir="rtl">إعدادات الخصوصية</span></h3>
+    <form action="{% url 'docs:document_update_privacy' docid=document.id %}" method="post">
+      {% csrf_token %}
+      <div class="form-group">
+        <label><span class="lang-text" data-lang="en">Access Tags</span><span class="lang-text" data-lang="fr" style="display:none">Tags d'accès</span><span class="lang-text" data-lang="ar" style="display:none" dir="rtl">علامات الوصول</span></label>
+        <input type="text" name="access_tags" value="{{ document.access_tags }}" placeholder="hr, finance, confidential">
+        <div class="form-help"><span class="lang-text" data-lang="en">Comma-separated. Users must have matching tags to view.</span><span class="lang-text" data-lang="fr" style="display:none">Séparés par des virgules. Les utilisateurs doivent avoir des tags correspondants.</span><span class="lang-text" data-lang="ar" style="display:none" dir="rtl">مفصولة بفواصل. يجب أن يكون للمستخدمين علامات مطابقة للعرض.</span></div>
+      </div>
+      {% if available_tags %}
+      <div class="tag-cloud" style="margin-bottom:14px;">
+        {% for tag in available_tags %}<span class="tag-chip" style="cursor:pointer;" onclick="addPrivacyTag('{{ tag }}')">{{ tag }}</span>{% endfor %}
+      </div>
+      {% endif %}
+      <div class="modal-actions">
+        <button type="button" class="btn btn-secondary btn-sm" onclick="closeModal('privacyModal')"><span class="lang-text" data-lang="en">Cancel</span><span class="lang-text" data-lang="fr" style="display:none">Annuler</span><span class="lang-text" data-lang="ar" style="display:none" dir="rtl">إلغاء</span></button>
+        <button type="submit" class="btn btn-primary btn-sm"><span class="lang-text" data-lang="en">Save</span><span class="lang-text" data-lang="fr" style="display:none">Enregistrer</span><span class="lang-text" data-lang="ar" style="display:none" dir="rtl">حفظ</span></button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Delete Modal -->
+<div class="modal-overlay" id="deleteModal">
+  <div class="modal-box">
+    <h3><span class="lang-text" data-lang="en">Delete Document</span><span class="lang-text" data-lang="fr" style="display:none">Supprimer le document</span><span class="lang-text" data-lang="ar" style="display:none" dir="rtl">حذف المستند</span></h3>
+    <p style="color:var(--muted);font-size:.84rem;margin-bottom:16px;">
+      <span class="lang-text" data-lang="en">Are you sure you want to delete "{{ document.title }}"? This action can be undone by an administrator.</span>
+      <span class="lang-text" data-lang="fr" style="display:none">Êtes-vous sûr de vouloir supprimer "{{ document.title }}" ?</span>
+      <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">هل أنت متأكد من حذف "{{ document.title }}"؟</span>
+    </p>
+    <form action="{% url 'docs:document_delete' docid=document.id %}" method="post">
+      {% csrf_token %}
+      <div class="modal-actions">
+        <button type="button" class="btn btn-secondary btn-sm" onclick="closeModal('deleteModal')"><span class="lang-text" data-lang="en">Cancel</span><span class="lang-text" data-lang="fr" style="display:none">Annuler</span><span class="lang-text" data-lang="ar" style="display:none" dir="rtl">إلغاء</span></button>
+        <button type="submit" class="btn btn-danger btn-sm"><span class="lang-text" data-lang="en">Delete</span><span class="lang-text" data-lang="fr" style="display:none">Supprimer</span><span class="lang-text" data-lang="ar" style="display:none" dir="rtl">حذف</span></button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  function openModal(id)  { document.getElementById(id).style.display = 'flex'; }
+  function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+  function togglePreviewFullscreen() {
+    const frame = document.getElementById('officePreviewFrame');
+    if (!frame) return;
+    if (!document.fullscreenElement) {
+      frame.requestFullscreen().catch(() => {
+        // fallback: expand iframe height
+        frame.style.height = frame.style.height === '92vh' ? '640px' : '92vh';
+      });
+    } else {
+      document.exitFullscreen();
+    }
+  }
+  document.querySelectorAll('.modal-overlay').forEach(o => o.addEventListener('click', e => { if (e.target === o) o.style.display = 'none'; }));
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') document.querySelectorAll('.modal-overlay').forEach(o => o.style.display = 'none'); });
+  function addPrivacyTag(tag) {
+    const input = document.querySelector('[name="access_tags"]');
+    if (!input) return;
+    const tags = input.value.split(',').map(t => t.trim()).filter(t => t);
+    if (!tags.includes(tag)) { tags.push(tag); input.value = tags.join(', '); }
+  }
+
+  let summaryLoaded = false;
+  function switchTab(tab, btn) {
+    document.querySelectorAll('.doc-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.doc-tab-panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('tab-' + tab).classList.add('active');
+    if (tab === 'summary' && !summaryLoaded) loadSummary();
+  }
+
+  {% if ai_enabled %}
+  function loadSummary() {
+    summaryLoaded = true;
+    const loading = document.getElementById('summaryLoading');
+    const text    = document.getElementById('summaryText');
+    const error   = document.getElementById('summaryError');
+    loading.style.display = 'inline'; text.style.display = 'none'; error.style.display = 'none';
+    fetch("{% url 'docs:ai_summarize_document' docid=document.id %}", {
+      method: 'POST',
+      headers: { 'X-CSRFToken': '{{ csrf_token }}', 'Content-Type': 'application/json' },
+    })
+    .then(r => r.json())
+    .then(data => {
+      loading.style.display = 'none';
+      if (data.error) { error.textContent = data.error; error.style.display = 'inline'; }
+      else { text.textContent = data.summary; text.style.display = 'inline'; }
+    })
+    .catch(() => { loading.style.display = 'none'; error.textContent = 'Failed to load summary. Please try again.'; error.style.display = 'inline'; });
+  }
+  {% else %}
+  function loadSummary() {}
+  {% endif %}
+</script>
+{% endblock %}

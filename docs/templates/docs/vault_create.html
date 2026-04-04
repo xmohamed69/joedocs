@@ -1,0 +1,78 @@
+{% extends "app_base.html" %}
+{% load static %}
+{% block title %}Create Vault — JoeLinkAI{% endblock %}
+{% block page_title %}Create Vault{% endblock %}
+
+{% block extra_head %}
+<style>
+  .pin-field { letter-spacing: .5em; font-size: 1.5rem; text-align: center; font-family: 'Courier New', monospace; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="page-header-text">
+    <h1 class="page-title">
+      <span class="lang-text" data-lang="en">Create Secure Vault</span>
+      <span class="lang-text" data-lang="fr" style="display:none">Créer un coffre sécurisé</span>
+      <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">إنشاء خزنة آمنة</span>
+    </h1>
+    <p class="page-subtitle">
+      <span class="lang-text" data-lang="en">Protect sensitive documents with a PIN code</span>
+      <span class="lang-text" data-lang="fr" style="display:none">Protégez les documents sensibles avec un code PIN</span>
+      <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">حماية المستندات الحساسة برمز PIN</span>
+    </p>
+  </div>
+</div>
+
+<div style="max-width:520px;">
+  <div class="alert alert-warning" style="margin-bottom:1.2rem;">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    <span class="lang-text" data-lang="en">Remember your PIN. Only organization owners can reset vault PINs.</span>
+    <span class="lang-text" data-lang="fr" style="display:none">Mémorisez votre PIN. Seuls les propriétaires d'organisation peuvent réinitialiser les PINs des coffres.</span>
+    <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">تذكر رمز PIN الخاص بك. يمكن لمالكي المنظمة فقط إعادة تعيين أرقام PIN الخزائن.</span>
+  </div>
+
+  {% if errors %}
+  <div class="alert alert-error" style="margin-bottom:1.2rem;">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    <div>{% for error in errors %}<div>{{ error }}</div>{% endfor %}</div>
+  </div>
+  {% endif %}
+
+  <div class="card" style="padding:0;overflow:hidden;">
+    <div class="card-header">
+      <h3><span class="lang-text" data-lang="en">Vault Details</span><span class="lang-text" data-lang="fr" style="display:none">Détails du coffre</span><span class="lang-text" data-lang="ar" style="display:none" dir="rtl">تفاصيل الخزنة</span></h3>
+    </div>
+    <div class="card-body">
+      <form method="post">
+        {% csrf_token %}
+        <div class="form-group">
+          <label><span class="lang-text" data-lang="en">Vault Name</span><span class="lang-text" data-lang="fr" style="display:none">Nom du coffre</span><span class="lang-text" data-lang="ar" style="display:none" dir="rtl">اسم الخزنة</span></label>
+          <input type="text" name="name" value="{{ name }}" placeholder="e.g., HR Confidential, Legal Documents" required>
+        </div>
+        <div class="form-group">
+          <label><span class="lang-text" data-lang="en">Description (Optional)</span><span class="lang-text" data-lang="fr" style="display:none">Description (Optionnel)</span><span class="lang-text" data-lang="ar" style="display:none" dir="rtl">الوصف (اختياري)</span></label>
+          <textarea name="description" rows="3" placeholder="What will this vault contain?">{{ description }}</textarea>
+        </div>
+        <div class="form-group">
+          <label><span class="lang-text" data-lang="en">PIN Code (6 digits)</span><span class="lang-text" data-lang="fr" style="display:none">Code PIN (6 chiffres)</span><span class="lang-text" data-lang="ar" style="display:none" dir="rtl">رمز PIN (6 أرقام)</span></label>
+          <input type="password" name="pin_code" class="pin-field" maxlength="6" pattern="[0-9]{6}" placeholder="••••••" required>
+          <div class="form-help"><span class="lang-text" data-lang="en">Must be exactly 6 digits</span><span class="lang-text" data-lang="fr" style="display:none">Doit comporter exactement 6 chiffres</span><span class="lang-text" data-lang="ar" style="display:none" dir="rtl">يجب أن يكون 6 أرقام بالضبط</span></div>
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            <span class="lang-text" data-lang="en">Create Vault</span><span class="lang-text" data-lang="fr" style="display:none">Créer le coffre</span><span class="lang-text" data-lang="ar" style="display:none" dir="rtl">إنشاء الخزنة</span>
+          </button>
+          <a href="{% url 'docs:manage' %}" class="btn btn-secondary"><span class="lang-text" data-lang="en">Cancel</span><span class="lang-text" data-lang="fr" style="display:none">Annuler</span><span class="lang-text" data-lang="ar" style="display:none" dir="rtl">إلغاء</span></a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.querySelector('.pin-field').addEventListener('input', function() { this.value = this.value.replace(/[^0-9]/g, ''); });
+</script>
+{% endblock %}

@@ -1,0 +1,38 @@
+# Large local tools — never deploy
+LibreOffice/
+Output/
+
+# Virtual environments
+venv312/
+venv/
+.venv/
+env/
+
+# PyInstaller output
+dist/
+build/
+installer/
+*.spec
+
+# Python cache
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Media uploads (serve from storage in production)
+media/
+
+# Local dev files
+.env
+*.log
+*.sqlite3
+db.sqlite3
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db

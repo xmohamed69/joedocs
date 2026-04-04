@@ -1,0 +1,80 @@
+JOELINK AI END USER LICENSE AGREEMENT (EULA)
+Version 1.0 – April 2, 2025
+
+IMPORTANT: PLEASE READ THIS AGREEMENT CAREFULLY BEFORE INSTALLING OR USING JOELINK AI.
+
+By installing, copying, or otherwise using the JoeLink AI software (the "Software"), you agree to be bound by the terms of this End User License Agreement ("Agreement"). If you do not agree to these terms, do not install or use the Software.
+
+1. DEFINITIONS
+   1.1 "Software" means the JoeLink AI desktop application, including all executable files, libraries, documentation, and any updates or patches provided to you.
+   1.2 "JoeLink AI" / "JoeDocs" / "We" / "Us" refers to the owner of the Software: JoeCorp, having its principal place of business at Tlemcen, Algeria.
+   1.3 "You" / "User" means the individual or legal entity using the Software.
+
+2. LICENSE GRANT
+   2.1 Subject to your compliance with the terms of this Agreement, We grant you a limited, non-exclusive, non-transferable, revocable license to:
+       (a) Install and use the Software on compatible Windows devices owned or controlled by you, solely for internal business purposes and exclusively in connection with a valid JoeDocs/ JoeLink AI backend account (organization).
+       (b) Access and use the Software’s features as described in the accompanying documentation.
+
+   2.2 This license is granted to you for your organization’s internal use only and does not constitute a sale of the Software or of any intellectual property rights.
+
+3. RESTRICTIONS
+   You shall NOT:
+   3.1 Copy, distribute, or transfer the Software to any third party, except as allowed by your subscription or written permission from Us.
+   3.2 Modify, adapt, translate, reverse engineer, decompile, disassemble, or attempt to derive the source code of the Software, unless expressly permitted by applicable law notwithstanding this limitation.
+   3.3 Remove, alter, or obscure any proprietary notices (including copyright and trademark notices) on or in the Software.
+   3.4 Use the Software to provide services to third parties (such as software-as-a-service) except as expressly agreed in writing.
+   3.5 Circumvent any technical protection measures, license restrictions, or access controls associated with the Software or backend services.
+
+4. OWNERSHIP
+   4.1 The Software is licensed, not sold. We and our licensors retain all right, title, and interest in and to the Software, including all intellectual property rights.
+   4.2 This Agreement does not grant you any rights to our trademarks, service marks, or logos.
+
+5. SUBSCRIPTION AND BACKEND ACCESS
+   5.1 Use of the Software is dependent on a valid, active organization account on the JoeDocs / JoeLink AI backend (the "Service").
+   5.2 Your right to use the Software may terminate automatically if your organizational subscription or access rights to the Service are suspended, expired, or terminated.
+
+6. PRIVACY AND DATA
+   6.1 The Software acts primarily as a client to the JoeDocs backend. Documents and related data are processed and stored on servers and/or cloud storage configured by Us or our infrastructure providers.
+   6.2 Your use of the Software and Service is also governed by our Privacy Policy, which describes how we collect, use, and protect your data. You are responsible for ensuring that your use complies with all applicable data protection and privacy laws.
+   6.3 You are solely responsible for the content you upload, and you warrant that you have all necessary rights to store and process such content.
+
+7. THIRD-PARTY SERVICES AND COMPONENTS
+   7.1 The Software may incorporate or interact with third-party libraries, services, or APIs (e.g., document preview libraries, AI providers, cloud storage providers). Such third-party components are the property of their respective owners and may be subject to additional licenses.
+   7.2 You agree to comply with all applicable third-party license terms as required.
+
+8. DISCLAIMER OF WARRANTY
+   8.1 THE SOFTWARE IS PROVIDED "AS IS" AND "AS AVAILABLE" WITH ALL FAULTS AND WITHOUT WARRANTY OF ANY KIND.
+   8.2 TO THE MAXIMUM EXTENT PERMITTED BY LAW, WE EXPRESSLY DISCLAIM ALL WARRANTIES, WHETHER EXPRESS, IMPLIED, OR STATUTORY, INCLUDING BUT NOT LIMITED TO ANY IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND TITLE.
+   8.3 WE DO NOT WARRANT THAT THE SOFTWARE WILL BE ERROR-FREE, SECURE, OR UNINTERRUPTED, OR THAT DEFECTS WILL BE CORRECTED.
+
+9. LIMITATION OF LIABILITY
+   9.1 TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL WE OR OUR LICENSORS BE LIABLE FOR:
+       (a) ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES,
+       (b) ANY LOSS OF PROFITS, REVENUE, DATA, OR BUSINESS OPPORTUNITIES,
+       ARISING OUT OF OR IN CONNECTION WITH YOUR USE OF OR INABILITY TO USE THE SOFTWARE OR SERVICE.
+   9.2 OUR TOTAL AGGREGATE LIABILITY UNDER THIS AGREEMENT SHALL NOT EXCEED THE AMOUNT YOU PAID FOR THE SOFTWARE OR SIX (6) MONTHS OF SUBSCRIPTION FEES, WHICHEVER IS LESS, TO THE EXTENT PERMITTED BY LAW.
+
+10. TERMINATION
+   10.1 This Agreement is effective until terminated.
+   10.2 We may terminate this Agreement at any time if:
+        (a) You fail to comply with any term of this Agreement,
+        (b) Your subscription or organization access to the Service ends.
+   10.3 Upon termination:
+        (a) Your license to use the Software ceases immediately,
+        (b) You must uninstall and delete all copies of the Software in your possession.
+
+11. GOVERNING LAW AND JURISDICTION
+   11.1 This Agreement shall be governed by and construed in accordance with the laws of Algeria, without regard to its conflict of law provisions.
+   11.2 Any disputes shall be subject to the exclusive jurisdiction of the courts located in Tlemcen, Algeria, unless otherwise required by applicable law.
+
+12. ENTIRE AGREEMENT AND AMENDMENTS
+   12.1 This Agreement constitutes the entire agreement between you and Us regarding the Software and supersedes all prior or contemporaneous understandings.
+   12.2 We may modify this Agreement from time to time. The updated version will be made available with new releases or on our official website. Continued use of the Software constitutes your acceptance of any such changes.
+
+13. CONTACT
+   If you have any questions about this Agreement, please contact:
+   JoeCorp
+   joelinkaiofficial@gmail.com
+   mohaout2004@gmail.com
+
+BY INSTALLING OR USING THE SOFTWARE, YOU ACKNOWLEDGE THAT YOU HAVE READ THIS AGREEMENT, UNDERSTAND IT, AND AGREE TO BE BOUND BY ITS TERMS.
