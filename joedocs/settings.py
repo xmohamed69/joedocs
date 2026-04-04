@@ -25,8 +25,7 @@ MAINTENANCE_MODE = os.getenv('MAINTENANCE_MODE', 'False').lower() == 'true'
 
 SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-key-change-me")
 DEBUG = os.getenv("DEBUG", "True").lower() == "true"
-ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "127.0.0.1,localhost").split(",")
-
+ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "127.0.0.1,localhost").split(",") + ["healthcheck.railway.app"]
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -167,7 +166,7 @@ LIBREOFFICE_PATH = os.getenv(
     r'C:\Program Files\LibreOffice\program\soffice.exe'
 )
 
-CSRF_USE_SESSIONS = True
+CSRF_USE_SESSIONS = False
 
 # ── Railway / production overrides ────────────────────────────────────────────
 # These activate automatically when DATABASE_URL is set (Railway injects it).
