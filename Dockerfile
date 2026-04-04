@@ -29,5 +29,4 @@ RUN python manage.py collectstatic --noinput || true
 
 EXPOSE 8000
 
-# Entrypoint: run migrations then start gunicorn
-CMD ["sh", "-c", "python manage.py migrate --noinput && gunicorn joedocs.wsgi:application --bind 0.0.0.0:8000 --workers 2 --timeout 120"]
+CMD ["gunicorn", "joedocs.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "2", "--timeout", "120"]
