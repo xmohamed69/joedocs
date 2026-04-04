@@ -1,15 +1,22 @@
 # Copyright (c) 2025 JoeLinkAI / JoeCorp. All rights reserved.
 # Unauthorized copying, distribution, or modification is strictly prohibited.
 # See LICENSE for details.
- 
+
 # joedocs/urls.py
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path, include
 from django.views.generic import RedirectView
+from django.http import HttpResponse
+
+
+def health(request):
+    return HttpResponse("ok")
+
 
 urlpatterns = [
+    path("health/", health),
     path("admin/", admin.site.urls),
     path("i18n/", include("django.conf.urls.i18n")),
     path("website/", include("website.urls")),
