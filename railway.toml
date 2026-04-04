@@ -2,10 +2,5 @@
 builder = "dockerfile"
 
 [deploy]
-<<<<<<< HEAD
 healthcheckPath = "/accounts/login/"
-=======
-startCommand = "gunicorn joedocs.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --timeout 120"
-healthcheckPath = "/website/"
->>>>>>> c6e597ce91daee7fa1565ac43570ca68843b2e28
 restartPolicyType = "on_failure"
