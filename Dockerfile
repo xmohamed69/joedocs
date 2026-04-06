@@ -7,6 +7,11 @@ ENV PORT=8000
 RUN apt-get update && apt-get install -y \
     build-essential \
     libpq-dev \
+    libreoffice \
+    libreoffice-writer \
+    libreoffice-calc \
+    libreoffice-impress \
+    --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
