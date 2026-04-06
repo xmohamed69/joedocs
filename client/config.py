@@ -2,7 +2,5 @@
 # Unauthorized copying, distribution, or modification is strictly prohibited.
 # See LICENSE for details.
  
-# client/config.py
-BASE_URL = "http://127.0.0.1:8000" 
-
+BASE_URL = "https://joedocs-production.up.railway.app"
 LOGIN_PATH = "/accounts/login/"
