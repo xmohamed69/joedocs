@@ -1534,63 +1534,127 @@ def document_render_preview(request, version_id):
         return HttpResponseForbidden("Vault access required.")
 
     # ── Determine file type ─────────────────────────────────────────────────
-    file_path = version.file.path
-    ext = os.path.splitext(file_path)[1].lower()
+    file_name = version.file.name
+    ext = os.path.splitext(file_name)[1].lower()
 
-    # ── Handle Office documents via LibreOffice ─────────────────────────────
+    # ── Detect if file is remote (Cloudinary) or local ─────────────────────
+    def _is_remote():
+        try:
+            url = version.file.url
+            return url.startswith('http://') or url.startswith('https://')
+        except Exception:
+            return False
+
+    def _fetch_remote_bytes():
+        """Fetch file bytes from Cloudinary/remote URL."""
+        import urllib.request
+        url = version.file.url
+        with urllib.request.urlopen(url, timeout=30) as resp:
+            return resp.read()
+
+    # ── Handle Office documents ─────────────────────────────────────────────
     if ext in OFFICE_EXTENSIONS:
+        if _is_remote():
+            # Can't run LibreOffice on remote files — show download link
+            file_url = version.file.url
+            html_body = f'''
+            <div style="text-align:center;padding:48px 24px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+                <div style="font-size:48px;margin-bottom:16px;">📄</div>
+                <p style="font-size:14px;color:#555;margin-bottom:16px;">
+                    <strong>Office document preview is not available in cloud mode.</strong>
+                </p>
+                <p style="font-size:13px;color:#999;margin-bottom:24px;">
+                    Download the file to view it on your device.
+                </p>
+                <a href="{file_url}" download
+                   style="display:inline-block;background:#0a0a0a;color:#fff;padding:10px 24px;
+                          border-radius:6px;font-size:13px;text-decoration:none;">
+                    ⬇ Download File
+                </a>
+            </div>'''
+            return _wrap_html_response(html_body)
+
+        # Local file — use LibreOffice
+        file_path = version.file.path
         pdf_path = _convert_to_pdf_with_libreoffice(file_path)
-        
         if pdf_path and os.path.exists(pdf_path):
-            # Serve the PDF directly - browser will render it
             with open(pdf_path, 'rb') as pdf_fh:
                 pdf_bytes = pdf_fh.read()
             return HttpResponse(pdf_bytes, content_type='application/pdf')
-        
-        # Conversion failed - check why
         soffice = _get_libreoffice_path()
-        
-        if not soffice:
-            html_body = _get_libreoffice_error_html(ext, "not_configured")
-        else:
-            html_body = _get_libreoffice_error_html(ext, "conversion_failed")
-        
+        html_body = _get_libreoffice_error_html(ext, "not_configured" if not soffice else "conversion_failed")
         return _wrap_html_response(html_body)
 
-    # ── Handle CSV (render as table, no LibreOffice needed) ─────────────────
+    # ── Handle CSV ──────────────────────────────────────────────────────────
     elif ext == '.csv':
-        html_body = _render_csv_preview(file_path)
+        if _is_remote():
+            try:
+                import io
+                raw = _fetch_remote_bytes()
+                text = raw.decode('utf-8', errors='ignore')
+                import csv as csv_mod2
+                rows = []
+                reader = csv_mod2.reader(io.StringIO(text))
+                for i, row in enumerate(reader):
+                    if i > 500:
+                        break
+                    rows.append(row)
+                parts = ['<div style="overflow-x:auto;"><table style="border-collapse:collapse;font-size:12px;min-width:100%;">']
+                for ri, row in enumerate(rows):
+                    tag = "th" if ri == 0 else "td"
+                    bg = "#f5f5f5" if ri == 0 else ("" if ri % 2 == 0 else "#fafafa")
+                    parts.append(f'<tr style="background:{bg};">')
+                    for cell in row:
+                        parts.append(f'<{tag} style="border:1px solid #e5e5e5;padding:4px 8px;">{html_mod.escape(str(cell))}</{tag}>')
+                    parts.append('</tr>')
+                parts.append('</table></div>')
+                return _wrap_html_response(''.join(parts))
+            except Exception:
+                return _wrap_html_response('<p style="color:#c00;">Could not load CSV.</p>')
+        html_body = _render_csv_preview(version.file.path)
         return _wrap_html_response(html_body)
 
     # ── Handle text files ───────────────────────────────────────────────────
     elif ext in TEXT_EXTENSIONS:
-        html_body = _render_text_preview(file_path)
+        if _is_remote():
+            try:
+                raw = _fetch_remote_bytes()
+                text = raw.decode('utf-8', errors='ignore')
+                html_body = f'<pre style="padding:16px;font-size:13px;white-space:pre-wrap;word-break:break-word;">{html_mod.escape(text[:50000])}</pre>'
+                return _wrap_html_response(html_body)
+            except Exception:
+                return _wrap_html_response('<p style="color:#c00;">Could not load file.</p>')
+        html_body = _render_text_preview(version.file.path)
         return _wrap_html_response(html_body)
 
-    # ── Handle images (return image directly) ───────────────────────────────
+    # ── Handle images ───────────────────────────────────────────────────────
     elif ext in IMAGE_EXTENSIONS:
+        if _is_remote():
+            # Redirect directly to the Cloudinary image URL
+            from django.http import HttpResponseRedirect
+            return HttpResponseRedirect(version.file.url)
         content_types = {
-            '.jpg': 'image/jpeg',
-            '.jpeg': 'image/jpeg',
-            '.png': 'image/png',
-            '.gif': 'image/gif',
-            '.bmp': 'image/bmp',
-            '.webp': 'image/webp',
-            '.svg': 'image/svg+xml',
+            '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg',
+            '.png': 'image/png', '.gif': 'image/gif',
+            '.bmp': 'image/bmp', '.webp': 'image/webp', '.svg': 'image/svg+xml',
         }
         try:
-            with open(file_path, 'rb') as f:
-                return HttpResponse(
-                    f.read(), 
-                    content_type=content_types.get(ext, 'application/octet-stream')
-                )
+            with open(version.file.path, 'rb') as f:
+                return HttpResponse(f.read(), content_type=content_types.get(ext, 'application/octet-stream'))
         except Exception:
             return _wrap_html_response('<p style="color:#c00;">Could not load image.</p>')
 
-    # ── Handle PDF (return directly) ────────────────────────────────────────
+    # ── Handle PDF ──────────────────────────────────────────────────────────
     elif ext == '.pdf':
+        if _is_remote():
+            try:
+                pdf_bytes = _fetch_remote_bytes()
+                return HttpResponse(pdf_bytes, content_type='application/pdf')
+            except Exception:
+                from django.http import HttpResponseRedirect
+                return HttpResponseRedirect(version.file.url)
         try:
-            with open(file_path, 'rb') as f:
+            with open(version.file.path, 'rb') as f:
                 return HttpResponse(f.read(), content_type='application/pdf')
         except Exception:
             return _wrap_html_response('<p style="color:#c00;">Could not load PDF.</p>')
@@ -1637,18 +1701,29 @@ def document_download(request, version_id):
 
     # Get filename
     filename = os.path.basename(version.file.name)
-    
+
     # Log download
     log(
-        doc.organization, 
-        request.user, 
-        "DOC_DOWNLOAD", 
-        target_type="Document", 
+        doc.organization,
+        request.user,
+        "DOC_DOWNLOAD",
+        target_type="Document",
         target_id=doc.id,
         version=version.version
     )
 
-    # Return file
+    # If using Cloudinary (or any remote storage), redirect to the file URL
+    # version.file.url returns the Cloudinary CDN URL when cloud storage is active
+    try:
+        file_url = version.file.url
+        # Check if it's a remote URL (Cloudinary, S3, etc.)
+        if file_url.startswith('http://') or file_url.startswith('https://'):
+            from django.http import HttpResponseRedirect
+            return HttpResponseRedirect(file_url)
+    except Exception:
+        pass
+
+    # Fallback: serve file locally (for local storage)
     response = FileResponse(
         version.file.open('rb'),
         as_attachment=True,
