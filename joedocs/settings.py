@@ -172,10 +172,55 @@ AI_CACHE_RESULTS = os.getenv('AI_CACHE_RESULTS', 'True').lower() == 'true'
 AI_CACHE_TTL = int(os.getenv('AI_CACHE_TTL', '3600'))
 AI_RATE_LIMIT_PER_USER = int(os.getenv('AI_RATE_LIMIT_PER_USER', '100'))
 
-LIBREOFFICE_PATH = os.getenv(
-    'LIBREOFFICE_PATH',
-    r'C:\Program Files\LibreOffice\program\soffice.exe'
-)
+import platform as _platform
+
+def _detect_libreoffice_path() -> str:
+    """
+    Auto-detect the LibreOffice soffice executable.
+    Priority: LIBREOFFICE_PATH env var → common OS paths → PATH lookup.
+    """
+    import shutil
+
+    # 1. Explicit override via environment variable
+    env_path = os.getenv('LIBREOFFICE_PATH', '')
+    if env_path and os.path.exists(env_path):
+        return env_path
+
+    # 2. Common hard-coded paths per OS
+    system = _platform.system()
+    if system == 'Windows':
+        candidates = [
+            r'C:\Program Files\LibreOffice\program\soffice.exe',
+            r'C:\Program Files (x86)\LibreOffice\program\soffice.exe',
+        ]
+    elif system == 'Darwin':
+        candidates = [
+            '/Applications/LibreOffice.app/Contents/MacOS/soffice',
+        ]
+    else:  # Linux / Railway
+        candidates = [
+            '/usr/bin/soffice',
+            '/usr/bin/libreoffice',
+            '/usr/local/bin/soffice',
+            '/usr/local/bin/libreoffice',
+            '/snap/bin/libreoffice',
+        ]
+
+    for path in candidates:
+        if os.path.exists(path):
+            return path
+
+    # 3. Fall back to PATH lookup
+    found = shutil.which('soffice') or shutil.which('libreoffice')
+    return found or ''
+
+
+LIBREOFFICE_PATH = _detect_libreoffice_path()
+
+# LibreOffice needs a writable HOME directory to store its user profile.
+# On Railway the default HOME may not exist; point it at /tmp.
+if not os.getenv('HOME') or not os.path.isdir(os.getenv('HOME', '')):
+    os.environ.setdefault('HOME', '/tmp')
 
 CSRF_USE_SESSIONS = False
 

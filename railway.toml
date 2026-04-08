@@ -1,7 +1,28 @@
 [build]
 builder = "dockerfile"
 
+# Install LibreOffice and its required fonts/dependencies so that
+# document-to-PDF conversion works on the Railway Linux container.
+# These packages are installed via apt-get before the Docker build step.
+[build.apt]
+packages = [
+    "libreoffice-writer",
+    "libreoffice-calc",
+    "libreoffice-impress",
+    "libreoffice-draw",
+    # Fonts — required for correct rendering of documents
+    "fonts-liberation",
+    "fonts-dejavu-core",
+    # Python-UNO bridge (needed by some LibreOffice integrations)
+    "python3-uno",
+]
+
 [deploy]
 healthcheckPath = "/health/"
 healthcheckTimeout = 300
 restartPolicyType = "on_failure"
+
+# Expose HOME so LibreOffice can write its user profile to /tmp
+[[deploy.envVars]]
+name = "HOME"
+value = "/tmp"

@@ -1555,8 +1555,27 @@ def document_render_preview(request, version_id):
     # ── Handle Office documents ─────────────────────────────────────────────
     if ext in OFFICE_EXTENSIONS:
         if _is_remote():
-            # Can't run LibreOffice on remote files — show download link
-            file_url = version.file.url
+            soffice = _get_libreoffice_path()
+            if soffice:
+                # LibreOffice is available (Railway/Linux) — download to temp,
+                # convert to PDF, stream the result.
+                try:
+                    import urllib.request
+                    raw = _fetch_remote_bytes()
+                    with tempfile.TemporaryDirectory() as tmp_dir:
+                        tmp_src = os.path.join(tmp_dir, f"doc{ext}")
+                        with open(tmp_src, 'wb') as fh:
+                            fh.write(raw)
+                        pdf_path = _convert_to_pdf_with_libreoffice(tmp_src)
+                        if pdf_path and os.path.exists(pdf_path):
+                            with open(pdf_path, 'rb') as pdf_fh:
+                                pdf_bytes = pdf_fh.read()
+                            return HttpResponse(pdf_bytes, content_type='application/pdf')
+                except Exception:
+                    pass
+            # LibreOffice unavailable or conversion failed — show download link
+            file_url = _make_cloudinary_download_url(version.file.url,
+                                                      os.path.basename(version.file.name))
             html_body = f'''
             <div style="text-align:center;padding:48px 24px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
                 <div style="font-size:48px;margin-bottom:16px;">📄</div>
@@ -1566,7 +1585,7 @@ def document_render_preview(request, version_id):
                 <p style="font-size:13px;color:#999;margin-bottom:24px;">
                     Download the file to view it on your device.
                 </p>
-                <a href="{file_url}" download
+                <a href="{file_url}"
                    style="display:inline-block;background:#0a0a0a;color:#fff;padding:10px 24px;
                           border-radius:6px;font-size:13px;text-decoration:none;">
                     ⬇ Download File
@@ -1648,11 +1667,38 @@ def document_render_preview(request, version_id):
     elif ext == '.pdf':
         if _is_remote():
             try:
+                # Proxy the PDF bytes through Django so the browser can embed
+                # them in an iframe. A plain redirect to a Cloudinary URL fails
+                # on free plans (PDF delivery is restricted) and also fails when
+                # the CDN returns a Content-Disposition:attachment header.
                 pdf_bytes = _fetch_remote_bytes()
-                return HttpResponse(pdf_bytes, content_type='application/pdf')
+                response = HttpResponse(pdf_bytes, content_type='application/pdf')
+                response['Content-Disposition'] = 'inline'
+                response['X-Frame-Options'] = 'SAMEORIGIN'
+                return response
             except Exception:
-                from django.http import HttpResponseRedirect
-                return HttpResponseRedirect(version.file.url)
+                # If proxying fails (e.g. Cloudinary blocks delivery), fall back
+                # to a friendly message with a download link.
+                download_url = _make_cloudinary_download_url(
+                    version.file.url, os.path.basename(version.file.name))
+                html_body = f'''
+                <div style="text-align:center;padding:48px 24px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+                    <div style="font-size:48px;margin-bottom:16px;">📄</div>
+                    <p style="font-size:14px;color:#555;margin-bottom:16px;">
+                        <strong>PDF preview is temporarily unavailable.</strong>
+                    </p>
+                    <p style="font-size:13px;color:#999;margin-bottom:24px;">
+                        This is usually caused by Cloudinary's PDF delivery restriction on free plans.<br>
+                        Enable PDF delivery in your Cloudinary dashboard under
+                        <em>Settings → Security → Allow PDF and ZIP files delivery</em>.
+                    </p>
+                    <a href="{download_url}"
+                       style="display:inline-block;background:#0a0a0a;color:#fff;padding:10px 24px;
+                              border-radius:6px;font-size:13px;text-decoration:none;">
+                        ⬇ Download PDF
+                    </a>
+                </div>'''
+                return _wrap_html_response(html_body)
         try:
             with open(version.file.path, 'rb') as f:
                 return HttpResponse(f.read(), content_type='application/pdf')
@@ -1676,6 +1722,38 @@ def document_render_preview(request, version_id):
 
 
 # ============ UTILITY VIEWS ============
+
+def _make_cloudinary_download_url(url: str, filename: str = "") -> str:
+    """
+    Inject Cloudinary's fl_attachment (and optional filename) transformation
+    into a Cloudinary URL so the browser treats it as a file download.
+
+    Cloudinary URL patterns:
+      https://res.cloudinary.com/<cloud>/image/upload/v123/path.ext
+      https://res.cloudinary.com/<cloud>/raw/upload/v123/path.ext
+
+    We insert  fl_attachment:<safe_filename>  after the /upload/ segment.
+    For non-Cloudinary URLs the original URL is returned unchanged.
+    """
+    import re
+    import urllib.parse
+
+    if 'cloudinary.com' not in url:
+        return url
+
+    # Build a safe filename token (no spaces, only URL-safe chars)
+    safe_name = ""
+    if filename:
+        base = os.path.splitext(filename)[0]
+        # Replace non-alphanumeric (except hyphens/underscores) with underscores
+        safe_name = re.sub(r'[^\w\-]', '_', base)
+
+    flag = f"fl_attachment:{safe_name}" if safe_name else "fl_attachment"
+
+    # Insert after /upload/ (handles versioned and non-versioned URLs)
+    new_url = re.sub(r'(/upload/)', rf'\1{flag}/', url, count=1)
+    return new_url
+
 
 @login_required
 def document_download(request, version_id):
@@ -1712,14 +1790,16 @@ def document_download(request, version_id):
         version=version.version
     )
 
-    # If using Cloudinary (or any remote storage), redirect to the file URL
-    # version.file.url returns the Cloudinary CDN URL when cloud storage is active
+    # If using Cloudinary (or any remote storage), redirect with download flag
     try:
         file_url = version.file.url
-        # Check if it's a remote URL (Cloudinary, S3, etc.)
         if file_url.startswith('http://') or file_url.startswith('https://'):
             from django.http import HttpResponseRedirect
-            return HttpResponseRedirect(file_url)
+            # Inject Cloudinary fl_attachment flag so the browser downloads
+            # the file instead of opening it inline. Works for all resource types
+            # (raw, image, video). Non-Cloudinary URLs pass through unchanged.
+            download_url = _make_cloudinary_download_url(file_url, filename)
+            return HttpResponseRedirect(download_url)
     except Exception:
         pass
 
