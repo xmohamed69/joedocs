@@ -1649,9 +1649,19 @@ def document_render_preview(request, version_id):
     # ── Handle images ───────────────────────────────────────────────────────
     elif ext in IMAGE_EXTENSIONS:
         if _is_remote():
-            # Redirect directly to the Cloudinary image URL
-            from django.http import HttpResponseRedirect
-            return HttpResponseRedirect(version.file.url)
+            # Proxy the image bytes through Django so the <img> tag works
+            # regardless of Cloudinary CORS/auth restrictions.
+            try:
+                content_types = {
+                    '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg',
+                    '.png': 'image/png', '.gif': 'image/gif',
+                    '.bmp': 'image/bmp', '.webp': 'image/webp', '.svg': 'image/svg+xml',
+                }
+                img_bytes = _fetch_remote_bytes()
+                return HttpResponse(img_bytes, content_type=content_types.get(ext, 'image/jpeg'))
+            except Exception:
+                from django.http import HttpResponseRedirect
+                return HttpResponseRedirect(version.file.url)
         content_types = {
             '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg',
             '.png': 'image/png', '.gif': 'image/gif',

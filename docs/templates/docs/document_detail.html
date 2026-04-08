@@ -172,19 +172,40 @@
     <div class="doc-tab-panel active" id="tab-preview">
       {% if latest_version %}
         {% if preview_type == "pdf" %}
-          <iframe src="{{ latest_version.file.url }}#toolbar=0&navpanes=0" width="100%" height="620px" style="border:none;display:block;"></iframe>
+          {# Route through Django so Cloudinary free-plan PDF restrictions are bypassed #}
+          <div id="previewSpinner" style="display:flex;align-items:center;justify-content:center;gap:10px;padding:48px 24px;color:var(--muted);font-size:.84rem;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="animation:spin 1s linear infinite;"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+            <span class="lang-text" data-lang="en">Loading PDF…</span>
+            <span class="lang-text" data-lang="fr" style="display:none">Chargement du PDF…</span>
+            <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">جار تحميل الملف…</span>
+          </div>
+          <iframe
+            src="{% url 'docs:document_render_preview' version_id=latest_version.id %}#toolbar=0&navpanes=0"
+            width="100%" height="620px"
+            style="border:none;display:none;background:var(--surface);"
+            onload="document.getElementById('previewSpinner').style.display='none';this.style.display='block';"
+          ></iframe>
           <div class="doc-preview-bar">
             <span>PDF — Version {{ latest_version.version }} · {{ latest_version.file_size|filesizeformat }}</span>
-            <a href="{{ latest_version.file.url }}" class="btn btn-primary btn-sm" download>
+            <a href="{% url 'docs:document_download' version_id=latest_version.id %}" class="btn btn-primary btn-sm">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
               <span class="lang-text" data-lang="en">Download</span><span class="lang-text" data-lang="fr" style="display:none">Télécharger</span><span class="lang-text" data-lang="ar" style="display:none" dir="rtl">تنزيل</span>
             </a>
           </div>
         {% elif preview_type == "image" %}
           <div style="padding:20px;text-align:center;background:var(--surface-2);">
-            <img src="{{ latest_version.file.url }}" alt="{{ document.title }}" style="max-width:100%;max-height:580px;border:1px solid var(--border);border-radius:var(--radius-sm);">
+            {# Proxy through Django so auth is enforced and Cloudinary signed URLs work #}
+            <img src="{% url 'docs:document_render_preview' version_id=latest_version.id %}"
+                 alt="{{ document.title }}"
+                 style="max-width:100%;max-height:580px;border:1px solid var(--border);border-radius:var(--radius-sm);"
+                 onerror="this.style.display='none';document.getElementById('imgFallback').style.display='block';">
+            <div id="imgFallback" style="display:none;padding:24px;color:var(--muted);font-size:.84rem;">
+              <span class="lang-text" data-lang="en">Could not load image preview.</span>
+              <span class="lang-text" data-lang="fr" style="display:none">Impossible de charger l'aperçu.</span>
+              <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">تعذّر تحميل معاينة الصورة.</span>
+            </div>
             <div style="margin-top:14px;">
-              <a href="{{ latest_version.file.url }}" class="btn btn-primary btn-sm" download>
+              <a href="{% url 'docs:document_download' version_id=latest_version.id %}" class="btn btn-primary btn-sm">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                 <span class="lang-text" data-lang="en">Download</span><span class="lang-text" data-lang="fr" style="display:none">Télécharger</span><span class="lang-text" data-lang="ar" style="display:none" dir="rtl">تنزيل</span>
               </a>
@@ -195,7 +216,7 @@
             <span class="lang-text" data-lang="en">Text preview — first 3,000 characters</span>
             <span class="lang-text" data-lang="fr" style="display:none">Aperçu texte — 3 000 premiers caractères</span>
             <span class="lang-text" data-lang="ar" style="display:none" dir="rtl">معاينة نصية — أول 3000 حرف</span>
-            <a href="{{ latest_version.file.url }}" class="btn btn-secondary btn-sm" download>
+            <a href="{% url 'docs:document_download' version_id=latest_version.id %}" class="btn btn-secondary btn-sm">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
               <span class="lang-text" data-lang="en">Download</span><span class="lang-text" data-lang="fr" style="display:none">Télécharger</span><span class="lang-text" data-lang="ar" style="display:none" dir="rtl">تنزيل</span>
             </a>
@@ -212,7 +233,7 @@
               <p class="lang-text" data-lang="fr" style="display:none">LibreOffice n'a pas pu convertir ce fichier. Veuillez le télécharger.</p>
               <p class="lang-text" data-lang="ar" style="display:none" dir="rtl">تعذّر تحويل الملف. يرجى تنزيله لعرضه.</p>
               <div style="margin-top:16px;">
-                <a href="{{ latest_version.file.url }}" class="btn btn-primary btn-sm" download>
+                <a href="{% url 'docs:document_download' version_id=latest_version.id %}" class="btn btn-primary btn-sm">
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                   <span class="lang-text" data-lang="en">Download File</span><span class="lang-text" data-lang="fr" style="display:none">Télécharger le fichier</span><span class="lang-text" data-lang="ar" style="display:none" dir="rtl">تنزيل الملف</span>
                 </a>
@@ -240,7 +261,7 @@
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
                   <span class="lang-text" data-lang="en">Fullscreen</span><span class="lang-text" data-lang="fr" style="display:none">Plein écran</span><span class="lang-text" data-lang="ar" style="display:none" dir="rtl">ملء الشاشة</span>
                 </button>
-                <a href="{{ latest_version.file.url }}" class="btn btn-secondary btn-sm" download>
+                <a href="{% url 'docs:document_download' version_id=latest_version.id %}" class="btn btn-secondary btn-sm">
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                   <span class="lang-text" data-lang="en">Download</span><span class="lang-text" data-lang="fr" style="display:none">Télécharger</span><span class="lang-text" data-lang="ar" style="display:none" dir="rtl">تنزيل</span>
                 </a>
@@ -254,7 +275,7 @@
             <p class="lang-text" data-lang="en">Version {{ latest_version.version }} · {{ latest_version.file_size|filesizeformat }}<br>Preview not available for this file type.</p>
             <p class="lang-text" data-lang="fr" style="display:none">Version {{ latest_version.version }} · {{ latest_version.file_size|filesizeformat }}<br>Aperçu non disponible pour ce type de fichier.</p>
             <p class="lang-text" data-lang="ar" style="display:none" dir="rtl">الإصدار {{ latest_version.version }} · {{ latest_version.file_size|filesizeformat }}<br>المعاينة غير متاحة.</p>
-            <div style="margin-top:16px;"><a href="{{ latest_version.file.url }}" class="btn btn-primary btn-sm" download><span class="lang-text" data-lang="en">Download Latest Version</span><span class="lang-text" data-lang="fr" style="display:none">Télécharger la dernière version</span><span class="lang-text" data-lang="ar" style="display:none" dir="rtl">تنزيل أحدث إصدار</span></a></div>
+            <div style="margin-top:16px;"><a href="{% url 'docs:document_download' version_id=latest_version.id %}" class="btn btn-primary btn-sm"><span class="lang-text" data-lang="en">Download Latest Version</span><span class="lang-text" data-lang="fr" style="display:none">Télécharger la dernière version</span><span class="lang-text" data-lang="ar" style="display:none" dir="rtl">تنزيل أحدث إصدار</span></a></div>
           </div>
         {% endif %}
       {% else %}
@@ -303,7 +324,7 @@
       <div class="sb-body">
         <div class="action-list">
           {% if latest_version %}
-          <a href="{{ latest_version.file.url }}" class="action-item action-primary" download>
+          <a href="{% url 'docs:document_download' version_id=latest_version.id %}" class="action-item action-primary">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
             <span class="lang-text" data-lang="en">Download</span><span class="lang-text" data-lang="fr" style="display:none">Télécharger</span><span class="lang-text" data-lang="ar" style="display:none" dir="rtl">تنزيل</span>
           </a>
@@ -360,7 +381,7 @@
               <div class="version-num"><span class="lang-text" data-lang="en">Version {{ version.version }}</span><span class="lang-text" data-lang="fr" style="display:none">Version {{ version.version }}</span><span class="lang-text" data-lang="ar" style="display:none" dir="rtl">الإصدار {{ version.version }}</span></div>
               <div class="version-meta">{{ version.created_at|date:"M d, Y H:i" }} · {{ version.file_size|filesizeformat }}</div>
             </div>
-            <a href="{{ version.file.url }}" class="btn btn-secondary btn-sm" download>
+            <a href="{% url 'docs:document_download' version_id=version.id %}" class="btn btn-secondary btn-sm">
               <span class="lang-text" data-lang="en">DL</span><span class="lang-text" data-lang="fr" style="display:none">DL</span><span class="lang-text" data-lang="ar" style="display:none" dir="rtl">تنزيل</span>
             </a>
           </div>
