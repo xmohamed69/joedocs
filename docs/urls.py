@@ -37,8 +37,11 @@ urlpatterns = [
     path("vault/<int:vaultid>/reset-pin/", views.vault_reset_pin, name="vault_reset_pin"),
     path("vault/<int:vaultid>/delete/", views.vault_delete, name="vault_delete"),
 
-    # Document preview renderer (office formats)
+    # Document preview renderer (office formats, PDF, images)
     path("document/version/<int:version_id>/preview/", views.document_render_preview, name="document_render_preview"),
+
+    # Document download (Cloudinary-aware, enforces auth)  ← NEW
+    path("document/version/<int:version_id>/download/", views.document_download, name="document_download"),
 
     # AI endpoints
     path("ai/suggest-title/", views.ai_suggest_title, name="ai_suggest_title"),
@@ -51,6 +54,7 @@ urlpatterns = [
     path("manage/folders/create/", views.folder_create, name="folder_create"),
     path("manage/folders/<int:folderid>/delete/", views.folder_delete, name="folder_delete"),
     path("manage/vaults/create/", views.vault_create, name="vault_create"),
+
     # AI Chatbot
     path('ai/chat/',      org_chat_page, name='org_chat_page'),
     path('ai/chat/send/', org_chat_api,  name='org_chat'),
