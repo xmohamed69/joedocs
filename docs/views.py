@@ -1800,20 +1800,49 @@ def document_download(request, version_id):
         version=version.version
     )
 
-    # If using Cloudinary (or any remote storage), redirect with download flag
+    # Detect remote (Cloudinary) vs local storage
     try:
         file_url = version.file.url
-        if file_url.startswith('http://') or file_url.startswith('https://'):
+        is_remote = file_url.startswith('http://') or file_url.startswith('https://')
+    except Exception:
+        is_remote = False
+
+    if is_remote:
+        # Proxy the file bytes through Django and serve with Content-Disposition: attachment.
+        # This is the most reliable approach — it works regardless of Cloudinary plan,
+        # resource type (raw/image/video), or URL signing. The browser always gets a
+        # proper download prompt with the correct filename.
+        import urllib.request
+        import mimetypes
+
+        try:
+            req = urllib.request.Request(file_url, headers={'User-Agent': 'Mozilla/5.0'})
+            with urllib.request.urlopen(req, timeout=60) as resp:
+                file_bytes = resp.read()
+
+            content_type, _ = mimetypes.guess_type(filename)
+            if not content_type:
+                content_type = 'application/octet-stream'
+
+            response = HttpResponse(file_bytes, content_type=content_type)
+            # Use RFC 5987 encoding for filenames with non-ASCII characters
+            try:
+                filename.encode('ascii')
+                response['Content-Disposition'] = f'attachment; filename="{filename}"'
+            except UnicodeEncodeError:
+                import urllib.parse
+                encoded = urllib.parse.quote(filename)
+                response['Content-Disposition'] = f"attachment; filename*=UTF-8''{encoded}"
+            return response
+
+        except Exception:
+            # If proxying fails (e.g. very large file or network error),
+            # fall back to a Cloudinary fl_attachment redirect.
             from django.http import HttpResponseRedirect
-            # Inject Cloudinary fl_attachment flag so the browser downloads
-            # the file instead of opening it inline. Works for all resource types
-            # (raw, image, video). Non-Cloudinary URLs pass through unchanged.
             download_url = _make_cloudinary_download_url(file_url, filename)
             return HttpResponseRedirect(download_url)
-    except Exception:
-        pass
 
-    # Fallback: serve file locally (for local storage)
+    # Local storage fallback
     response = FileResponse(
         version.file.open('rb'),
         as_attachment=True,
